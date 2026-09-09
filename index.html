@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maflun Academy — Kaduna, Nigeria</title>
+<meta name="description" content="Maflun Academy — Nursery, Primary and Secondary school in Malkali Farm, Mando, Kaduna. Brighter Future.">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#241F42;
+    --ink-soft:#4A4370;
+    --brand:#8C82B8;
+    --brand-deep:#5B5290;
+    --gold:#C9A227;
+    --gold-soft:#D9BA5C;
+    --paper:#F8F6F1;
+    --paper-dim:#EFEBE1;
+    --line: rgba(36,31,66,0.14);
+    --line-on-dark: rgba(217,186,92,0.32);
+    --max: 1120px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    font-size:17px;
+    line-height:1.6;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    line-height:1.05;
+    margin:0;
+    color:var(--ink);
+  }
+  a{color:inherit;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 32px;}
+  @media (max-width:640px){ .wrap{padding:0 20px;} }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+    text-decoration:none;
+  }
+  .crest-img{
+    width:44px; height:44px;
+    object-fit:contain;
+    flex-shrink:0;
+  }
+  .brand-name{
+    font-family:'Fraunces', serif; font-weight:600; font-size:19px;
+    letter-spacing:0.01em;
+  }
+  nav.links{display:flex; gap:32px; font-size:15px;}
+  nav.links a{text-decoration:none; padding:4px 0; border-bottom:1px solid transparent; transition:border-color .15s ease;}
+  nav.links a:hover{border-color:var(--gold);}
+  .nav-cta{
+    background:var(--ink); color:var(--paper); text-decoration:none;
+    padding:10px 20px; border-radius:2px; font-size:14px; font-weight:500;
+    border:1px solid var(--ink);
+    transition: background .15s ease, color .15s ease;
+  }
+  .nav-cta:hover{ background:transparent; color:var(--ink); }
+  .menu-btn{ display:none; background:none; border:none; cursor:pointer; padding:6px; }
+  .menu-btn span{ display:block; width:24px; height:2px; background:var(--ink); margin:5px 0; }
+
+  @media (max-width:860px){
+    nav.links{ display:none; }
+    .nav-cta{ display:none; }
+    .menu-btn{ display:block; }
+    .mobile-menu{
+      display:none; flex-direction:column; gap:0;
+      border-top:1px solid var(--line);
+    }
+    .mobile-menu.open{ display:flex; }
+    .mobile-menu a{
+      padding:16px 0; text-decoration:none; border-bottom:1px solid var(--line);
+      font-size:16px;
+    }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:var(--ink);
+    color:var(--paper);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero .wrap{
+    padding:88px 32px 80px;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:56px;
+    align-items:center;
+  }
+  @media (max-width:860px){
+    .hero .wrap{ grid-template-columns:1fr; padding:56px 20px 48px; gap:40px; }
+  }
+  .eyebrow{
+    color:var(--gold-soft);
+    font-size:14px;
+    letter-spacing:0.03em;
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-size:clamp(38px, 5.4vw, 58px);
+    color:var(--paper);
+    max-width:11ch;
+  }
+  .hero-sub{
+    margin-top:22px;
+    max-width:44ch;
+    color:#D8D3EA;
+    font-size:17px;
+  }
+  .hero-actions{
+    margin-top:34px;
+    display:flex; gap:16px; flex-wrap:wrap;
+  }
+  .btn-gold{
+    background:var(--gold);
+    color:var(--ink);
+    text-decoration:none;
+    padding:14px 26px;
+    font-weight:600;
+    font-size:15px;
+    border-radius:2px;
+    border:1px solid var(--gold);
+    transition:opacity .15s ease;
+  }
+  .btn-gold:hover{ opacity:0.85; }
+  .btn-outline{
+    color:var(--paper);
+    text-decoration:none;
+    padding:14px 26px;
+    font-weight:500;
+    font-size:15px;
+    border-radius:2px;
+    border:1px solid var(--line-on-dark);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .btn-outline:hover{ border-color:var(--gold); background:rgba(217,186,92,0.06); }
+
+  .hero-emblem{
+    display:flex; align-items:center; justify-content:center;
+  }
+  .emblem-ring{
+    width:min(300px, 78vw);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    padding:18px;
+  }
+  .emblem-ring img{
+    width:100%;
+    filter: drop-shadow(0 18px 40px rgba(0,0,0,0.35));
+  }
+
+  .hero-stats{
+    border-top:1px solid var(--line-on-dark);
+    margin-top:60px;
+    padding-top:32px;
+    display:flex;
+    gap:56px;
+    flex-wrap:wrap;
+  }
+  .stat-num{
+    font-family:'Fraunces', serif;
+    font-size:28px;
+    color:var(--gold-soft);
+  }
+  .stat-label{ font-size:14px; color:#B6AFD6; margin-top:4px; }
+
+  /* ---------- Section shell ---------- */
+  section{ padding:88px 0; }
+  @media (max-width:640px){ section{ padding:64px 0; } }
+  .section-head{
+    display:grid; grid-template-columns:0.5fr 1fr; gap:40px;
+    margin-bottom:52px;
+    align-items:start;
+  }
+  @media (max-width:760px){ .section-head{ grid-template-columns:1fr; gap:16px; } }
+  .section-num{
+    font-family:'Fraunces', serif; color:var(--brand-deep);
+    font-size:15px; padding-top:6px;
+  }
+  .section-head h2{ font-size:clamp(28px, 3.4vw, 38px); max-width:14ch; }
+  .section-head p{ margin-top:14px; max-width:52ch; color:var(--ink-soft); }
+
+  hr.rule{ border:none; border-top:1px solid var(--line); margin:0; }
+
+  /* ---------- About ---------- */
+  .about-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:64px;
+  }
+  @media (max-width:760px){ .about-grid{ grid-template-columns:1fr; gap:32px; } }
+  .about-grid p + p{ margin-top:16px; }
+  .pillars{ display:flex; flex-direction:column; }
+  .pillar{
+    padding:22px 0;
+    border-top:1px solid var(--line);
+    display:grid; grid-template-columns:56px 1fr; gap:18px;
+  }
+  .pillar:last-child{ border-bottom:1px solid var(--line); }
+  .pillar-mark{ font-family:'Fraunces', serif; color:var(--brand-deep); font-size:17px; }
+  .pillar h3{ font-size:18px; font-weight:600; }
+  .pillar p{ margin-top:6px; color:var(--ink-soft); font-size:15.5px; }
+
+  /* ---------- Academics ---------- */
+  .stages{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  @media (max-width:760px){ .stages{ grid-template-columns:1fr; } }
+  .stage{
+    background:var(--paper);
+    padding:36px 32px;
+  }
+  .stage h3{ font-size:21px; margin-bottom:12px; }
+  .stage-age{ color:var(--brand-deep); font-size:14px; margin-bottom:16px; display:block; }
+  .stage ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:15px; }
+  .stage li + li{ margin-top:8px; }
+
+  /* ---------- Admissions ---------- */
+  .admissions{
+    background:var(--paper-dim);
+  }
+  .steps{ display:flex; flex-direction:column; }
+  .step{
+    display:grid; grid-template-columns:60px 1fr; gap:20px;
+    padding:26px 0;
+    border-top:1px solid var(--line);
+  }
+  .steps .step:last-child{ border-bottom:1px solid var(--line); }
+  .step-num{ font-family:'Fraunces', serif; font-size:26px; color:var(--brand-deep); }
+  .step h3{ font-size:17px; font-weight:600; margin-bottom:6px; }
+  .step p{ color:var(--ink-soft); font-size:15.5px; margin:0; max-width:56ch; }
+
+  .admissions-cta{
+    margin-top:44px;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:20px;
+    background:var(--ink); color:var(--paper);
+    padding:36px 40px;
+    border-radius:2px;
+  }
+  .admissions-cta h3{ color:var(--paper); font-size:22px; max-width:20ch; }
+  .admissions-cta p{ color:#D8D3EA; margin-top:8px; font-size:15px; }
+
+  /* ---------- Contact ---------- */
+  .contact-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:64px;
+  }
+  @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; gap:40px; } }
+  .contact-item{ padding:20px 0; border-top:1px solid var(--line); }
+  .contact-item:last-child{ border-bottom:1px solid var(--line); }
+  .contact-label{ font-size:13px; color:var(--brand-deep); margin-bottom:6px; }
+  .contact-value{ font-size:17px; }
+  .contact-value a{ text-decoration:none; }
+  .contact-value a:hover{ text-decoration:underline; text-decoration-color:var(--gold); }
+  .map-frame{
+    border:1px solid var(--line);
+    height:100%;
+    min-height:340px;
+    filter:grayscale(0.15);
+  }
+  .map-frame iframe{ width:100%; height:100%; min-height:340px; border:0; display:block; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--ink); color:#B6AFD6;
+    padding:48px 0 32px;
+    font-size:14px;
+  }
+  .footer-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-wrap:wrap; gap:24px;
+    padding-bottom:28px; border-bottom:1px solid var(--line-on-dark);
+  }
+  .footer-brand-row{ display:flex; align-items:center; gap:12px; }
+  .footer-brand-row img{ width:34px; height:34px; object-fit:contain; }
+  .footer-brand{ color:var(--paper); font-family:'Fraunces', serif; font-size:19px; }
+  .footer-cols{ display:flex; gap:64px; flex-wrap:wrap; }
+  .footer-col a{ display:block; text-decoration:none; color:#B6AFD6; padding:4px 0; font-size:14px; }
+  .footer-col a:hover{ color:var(--gold-soft); }
+  .footer-bottom{
+    padding-top:22px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+
+  .reveal{ animation: rise .7s ease both; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;} }
+  @media (prefers-reduced-motion: reduce){ .reveal{ animation:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <img class="crest-img" src="assets/logo.png" alt="Maflun Academy crest">
+      <span class="brand-name">Maflun Academy</span>
+    </a>
+    <nav class="links">
+      <a href="#about">About</a>
+      <a href="#academics">Academics</a>
+      <a href="#admissions">Admissions</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="nav-cta" href="#contact">Enquire</a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu wrap" id="mobileMenu">
+    <a href="#about">About</a>
+    <a href="#academics">Academics</a>
+    <a href="#admissions">Admissions</a>
+    <a href="#contact">Contact</a>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Mando, Kaduna State · Brighter Future</div>
+      <h1>Building character and competence, one pupil at a time.</h1>
+      <p class="hero-sub">Maflun Academy is a nursery, primary and secondary school committed to disciplined learning, strong values and results that prepare pupils for life beyond the classroom.</p>
+      <div class="hero-actions">
+        <a class="btn-gold" href="#admissions">Start admission</a>
+        <a class="btn-outline" href="#contact">Visit the school</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="stat-num">Nursery–SS3</div>
+          <div class="stat-label">Full academic pathway</div>
+        </div>
+        <div>
+          <div class="stat-num">RC 1710300</div>
+          <div class="stat-label">Registered institution</div>
+        </div>
+        <div>
+          <div class="stat-num">Kaduna</div>
+          <div class="stat-label">Malkali Farm, Mando</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-emblem">
+      <div class="emblem-ring"><img src="assets/logo.png" alt="Maflun Academy — Brighter Future crest"></div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">About</div>
+      <div>
+        <h2>A school built on discipline, care and steady standards.</h2>
+        <p>What Maflun Academy stands for, and how it shows up in the classroom every day.</p>
+      </div>
+    </div>
+    <div class="about-grid">
+      <div>
+        <p>Maflun Academy sits on School Road in Malkali Farm, Mando, Kaduna — a school built to give children in the community a place where learning is taken seriously and every pupil is known by name.</p>
+        <p>We keep classes structured and teachers accountable, so that a child's progress is visible to parents at every stage, from nursery through to senior secondary school. Our motto, <em>Brighter Future</em>, guides everything we do.</p>
+      </div>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-mark">01</div>
+          <div>
+            <h3>Discipline</h3>
+            <p>Clear routines and standards of conduct that pupils carry beyond the school gate.</p>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-mark">02</div>
+          <div>
+            <h3>Academic rigour</h3>
+            <p>A curriculum taught to depth, with regular assessment so gaps are caught early.</p>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-mark">03</div>
+          <div>
+            <h3>Character</h3>
+            <p>Respect, honesty and responsibility, built into the culture of every classroom.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="academics">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">Academics</div>
+      <div>
+        <h2>One school, three stages of growth.</h2>
+        <p>A single, connected pathway from a child's earliest years through to their final school exams.</p>
+      </div>
+    </div>
+    <div class="stages">
+      <div class="stage">
+        <span class="stage-age">Ages 3–5</span>
+        <h3>Nursery</h3>
+        <ul>
+          <li>Early literacy and numeracy</li>
+          <li>Guided play and social skills</li>
+          <li>Small class groups</li>
+        </ul>
+      </div>
+      <div class="stage">
+        <span class="stage-age">Ages 6–11</span>
+        <h3>Primary</h3>
+        <ul>
+          <li>Core subjects taught to the national curriculum</li>
+          <li>Regular tests and report cards</li>
+          <li>Sports, arts and clubs</li>
+        </ul>
+      </div>
+      <div class="stage">
+        <span class="stage-age">Ages 12–17</span>
+        <h3>Secondary</h3>
+        <ul>
+          <li>JSS and SSS preparation, including WAEC/NECO</li>
+          <li>Sciences, arts and commercial subjects</li>
+          <li>Exam preparation and career guidance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="admissions" class="admissions">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">Admissions</div>
+      <div>
+        <h2>How to enrol your child.</h2>
+        <p>Admission is open across the school year, subject to space in each class.</p>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Enquire</h3>
+          <p>Call or email the school office with your child's age and the class you're applying for.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Visit and assess</h3>
+          <p>Bring your child for a short entrance assessment and a tour of the school.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Register</h3>
+          <p>Complete the registration form and submit your child's previous school records, if applicable.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h3>Resume</h3>
+          <p>Receive your child's class placement, resumption date and requirements list.</p>
+        </div>
+      </div>
+    </div>
+    <div class="admissions-cta">
+      <div>
+        <h3>Ready to apply, or still deciding?</h3>
+        <p>Speak with the admissions office directly — we're happy to answer questions first.</p>
+      </div>
+      <a class="btn-gold" href="tel:08036126746">Call the office</a>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">Contact</div>
+      <div>
+        <h2>Visit us or reach out.</h2>
+        <p>The school office is open on weekdays for enquiries, visits and registration.</p>
+      </div>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <div class="contact-item">
+          <div class="contact-label">Address</div>
+          <div class="contact-value">No. 4 School Road, Malkali Farm, Mando, Kaduna, Nigeria</div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Phone</div>
+          <div class="contact-value">
+            <a href="tel:08036126746">0803 612 6746</a> ·
+            <a href="tel:07034382045">0703 438 2045</a> ·
+            <a href="tel:08148992840">0814 899 2840</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Email</div>
+          <div class="contact-value"><a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Registration</div>
+          <div class="contact-value">RC 1710300</div>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe
+          src="https://www.google.com/maps?q=Malkali+Farm+Mando+Kaduna+Nigeria&output=embed"
+          allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          title="Map to Maflun Academy"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand-row">
+        <img src="assets/logo.png" alt="Maflun Academy crest">
+        <div class="footer-brand">Maflun Academy</div>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <a href="#about">About</a>
+          <a href="#academics">Academics</a>
+          <a href="#admissions">Admissions</a>
+        </div>
+        <div class="footer-col">
+          <a href="tel:08036126746">0803 612 6746</a>
+          <a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a>
+          <a href="#contact">Malkali Farm, Mando, Kaduna</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Maflun Academy. All rights reserved.</span>
+      <span>RC 1710300, Kaduna, Nigeria</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+</script>
+
+</body>
+</html>
