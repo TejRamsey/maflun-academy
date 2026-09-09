@@ -453,7 +453,7 @@
       <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
       <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Contact</a>
     </nav>
-    <button class="nav-cta" onclick="showPage('portal')">Pay Fees / Portal</button>
+    <button class="nav-cta" onclick="showPage('portal')">Student Portal</button>
     <button class="menu-btn" id="menuBtn" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
@@ -481,7 +481,7 @@
       <p class="hero-sub">Maflun Academy is a nursery, primary and secondary school committed to disciplined learning, strong values and results that prepare pupils for life beyond the classroom.</p>
       <div class="hero-actions">
         <a class="btn-gold" href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Start admission</a>
-        <button class="btn-outline" onclick="showPage('portal')">Portal &amp; fee payment</button>
+        <button class="btn-outline" onclick="showPage('portal')">Portal &amp; fee balance</button>
       </div>
       <div class="hero-stats">
         <div>
@@ -688,7 +688,7 @@
   <section class="app-hero">
     <div class="wrap">
       <div class="eyebrow">Student &amp; Parent Portal</div>
-      <h1>Check results and pay school fees online.</h1>
+      <h1>Check results and your school fee balance.</h1>
       <p>Log in with the Student ID and PIN issued by the school office. If you don't have one yet, contact the admissions office.</p>
     </div>
   </section>
@@ -730,7 +730,7 @@
 
         <div class="tabbar">
           <button id="ptab-results" class="active" onclick="portalTab('results')">Results</button>
-          <button id="ptab-fees" onclick="portalTab('fees')">Fees &amp; payment</button>
+          <button id="ptab-fees" onclick="portalTab('fees')">Fees</button>
         </div>
 
         <div id="ppane-results">
@@ -756,36 +756,27 @@
         </div>
 
         <div id="ppane-fees" style="display:none">
-          <div class="stat-cards" id="feeStatCards"></div>
           <div class="panel">
-            <h3>Make a payment</h3>
-            <p class="hint">This is a demo payment flow — see note below on connecting a live gateway.</p>
-            <div id="payAlert"></div>
+            <h3>Check balance for a term</h3>
             <div class="field-row">
               <div class="field">
                 <label>Session</label>
-                <select id="paySession"></select>
+                <select id="feeSession" onchange="renderPortalFees()"></select>
               </div>
               <div class="field">
                 <label>Term</label>
-                <select id="payTerm">
+                <select id="feeTerm" onchange="renderPortalFees()">
                   <option>First Term</option>
                   <option>Second Term</option>
                   <option>Third Term</option>
                 </select>
               </div>
             </div>
-            <div class="field">
-              <label>Amount (₦)</label>
-              <input id="payAmount" type="number" min="1" placeholder="e.g. 45000">
-            </div>
-            <button class="btn-gold" onclick="makePayment()">Pay now (demo)</button>
-            <div class="note-box">
-              <strong>About payments here:</strong> This demo records the payment and updates the balance shown in the portal, but it does not move real money. To accept real fee payments, the school needs a merchant account with a Nigerian payment gateway (e.g. Paystack or Flutterwave) and a small backend server holding the gateway's secret key — that key can never live in a public webpage. Ask your developer to wire this "Pay now" button to the gateway's checkout once the account is ready.
-            </div>
           </div>
+          <div class="stat-cards" id="feeStatCards"></div>
           <div class="panel">
             <h3>Payment history</h3>
+            <p class="hint">Fees are paid at the school office (cash or bank transfer). The office records each payment here once received, so your balance stays up to date.</p>
             <div id="paymentHistory"></div>
           </div>
         </div>
@@ -969,14 +960,43 @@
         <!-- PAYMENTS LOG -->
         <div id="apane-payments" style="display:none">
           <div class="panel">
+            <h3>Record a payment received</h3>
+            <p class="hint">Log a fee payment after it's received at the office (cash, bank transfer, etc.). This updates the balance the parent sees in the portal.</p>
+            <div id="recordPayAlert"></div>
+            <div class="field-row">
+              <div class="field">
+                <label>Student</label>
+                <select id="payStudent"></select>
+              </div>
+              <div class="field">
+                <label>Session</label>
+                <input id="paySessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Term</label>
+                <select id="payTermInput">
+                  <option>First Term</option>
+                  <option>Second Term</option>
+                  <option>Third Term</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Amount received (₦)</label>
+                <input id="payAmountInput" type="number" min="1" placeholder="e.g. 45000">
+              </div>
+            </div>
+            <button class="btn-gold" onclick="recordPayment()">Record payment</button>
+          </div>
+          <div class="panel">
             <h3>All payments received</h3>
-            <p class="hint">Demo records only — no real money has moved. See the payments note in the Portal for going live.</p>
             <div id="paymentsLog"></div>
           </div>
         </div>
 
         <div class="note-box" style="margin-top:8px">
-          <strong>Security note for whoever maintains this site:</strong> the staff access code and all portal PINs in this demo are checked in the page's own JavaScript and the records are stored in shared artifact storage. That's fine for trying the workflow out, but it is not a secure login system — anyone who inspects the page could read the code or the stored data. Before using this with real pupil records or real payments, move student data, PIN checks and payment processing to a proper backend with a real database and authentication.
+          <strong>Security note for whoever maintains this site:</strong> the staff access code and all portal PINs in this demo are checked in the page's own JavaScript. That's fine for trying the workflow out, but it is not a secure login system — anyone who inspects the page could read the code or reach the stored data. Before using this with real pupil records, move PIN checks and student data to a proper backend with real authentication.
         </div>
       </div>
 
@@ -1042,7 +1062,7 @@ const ADMIN_CODE = "MAFLUN-STAFF";
    fine for a small-scale demo, but read the note at the bottom of
    setup.sql before trusting it with real records.
 ================================================================= */
-const SUPABASE_URL = "https://sazlwzwbewxdnuutixbd.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://sazlwzwbewxdnuutixbd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhemx3endiZXd4ZG51dXRpeGJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5ODU5ODgsImV4cCI6MjEwNDU2MTk4OH0.CranV-gRK8u8nhttit-hn26XgHAh2OYOARAd6Bwf_7w";
 
 let supabaseClient = null;
@@ -1202,7 +1222,7 @@ function sessionOptions(){
 }
 async function refreshPortalSelectors(){
   const opts = sessionOptions();
-  ['resSession','paySession'].forEach(id=>{
+  ['resSession','feeSession'].forEach(id=>{
     const sel = document.getElementById(id);
     if(!sel) return;
     const cur = sel.value;
@@ -1235,14 +1255,20 @@ async function renderPortalFees(){
   const payments = await getData('payments', []);
   const due = fees[st.class] || 0;
   const mine = payments.filter(p=>p.studentId===st.id);
-  const paidThisYear = mine.reduce((sum,p)=>sum+Number(p.amount||0),0);
-  const balance = Math.max(due - (mine[0]?Number(mine[0].amount):0), 0);
+  const paidAllTime = mine.reduce((sum,p)=>sum+Number(p.amount||0),0);
+
+  const session = document.getElementById('feeSession').value;
+  const term = document.getElementById('feeTerm').value;
+  const paidThisTerm = mine
+    .filter(p=>p.session===session && p.term===term)
+    .reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const balance = Math.max(due - paidThisTerm, 0);
 
   const cards = document.getElementById('feeStatCards');
   cards.innerHTML =
     '<div class="stat-card"><div class="label">Fee per term (' + esc(st.class) + ')</div><div class="value">'+money(due)+'</div></div>' +
-    '<div class="stat-card"><div class="label">Total paid (all records)</div><div class="value">'+money(paidThisYear)+'</div></div>' +
-    '<div class="stat-card"><div class="label">Payments on file</div><div class="value">'+mine.length+'</div></div>';
+    '<div class="stat-card"><div class="label">Balance this term</div><div class="value">'+money(balance)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Total paid (all time)</div><div class="value">'+money(paidAllTime)+'</div></div>';
 
   const hist = document.getElementById('paymentHistory');
   if(!mine.length){
@@ -1254,28 +1280,7 @@ async function renderPortalFees(){
     hist.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
 }
-async function makePayment(){
-  const alertBox = document.getElementById('payAlert');
-  alertBox.innerHTML = '';
-  const amount = Number(document.getElementById('payAmount').value);
-  const session = document.getElementById('paySession').value;
-  const term = document.getElementById('payTerm').value;
-  if(!amount || amount<=0){
-    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
-    return;
-  }
-  const payments = await getData('payments', []);
-  const ref = 'MAF' + Date.now().toString().slice(-8);
-  const record = {
-    id: ref, studentId: portalState.student.id, session, term, amount,
-    date: new Date().toLocaleDateString('en-GB')
-  };
-  payments.push(record);
-  await setData('payments', payments);
-  document.getElementById('payAmount').value = '';
-  alertBox.innerHTML = '<div class="alert alert-good">Payment recorded. Reference: '+ref+' (demo — no real money moved; see note below).</div>';
-  renderPortalFees();
-}
+
 
 /* ============== ADMIN ============== */
 let adminState = { loggedIn:false, tab:'students' };
@@ -1308,7 +1313,7 @@ function adminTab(tab){
   if(tab==='students') renderStudentsList();
   if(tab==='results') { populateResultStudentSelect(); }
   if(tab==='fees') renderFeesList();
-  if(tab==='payments') renderPaymentsLog();
+  if(tab==='payments') { populatePayStudentSelect(); renderPaymentsLog(); }
 }
 
 /* --- Students --- */
@@ -1463,7 +1468,38 @@ async function renderFeesList(){
   box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Class</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
-/* --- Payments log --- */
+/* --- Payments (recorded by staff) --- */
+async function populatePayStudentSelect(){
+  const students = await getData('students', []);
+  const sel = document.getElementById('payStudent');
+  sel.innerHTML = students.map(s=>'<option value="'+s.id+'">'+esc(s.id)+' — '+esc(s.name)+'</option>').join('');
+}
+async function recordPayment(){
+  const alertBox = document.getElementById('recordPayAlert');
+  alertBox.innerHTML = '';
+  const studentId = document.getElementById('payStudent').value;
+  const session = document.getElementById('paySessionInput').value.trim() || '2025/2026';
+  const term = document.getElementById('payTermInput').value;
+  const amount = Number(document.getElementById('payAmountInput').value);
+  if(!studentId){
+    alertBox.innerHTML = '<div class="alert alert-error">Register a student first.</div>';
+    return;
+  }
+  if(!amount || amount<=0){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
+    return;
+  }
+  const payments = await getData('payments', []);
+  const ref = 'MAF' + Date.now().toString().slice(-8);
+  payments.push({
+    id: ref, studentId, session, term, amount,
+    date: new Date().toLocaleDateString('en-GB')
+  });
+  await setData('payments', payments);
+  document.getElementById('payAmountInput').value = '';
+  alertBox.innerHTML = '<div class="alert alert-good">Payment of '+money(amount)+' recorded for '+esc(studentId)+'. Reference: '+ref+'.</div>';
+  renderPaymentsLog();
+}
 async function renderPaymentsLog(){
   const payments = await getData('payments', []);
   const students = await getData('students', []);
