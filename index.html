@@ -805,7 +805,7 @@
       <div id="adminLogin" class="login-shell">
         <div class="panel">
           <h3>Staff log in</h3>
-          <p class="hint">Log in with the staff account created for you in Supabase.</p>
+          <p class="hint">Enter your staff email and password to continue.</p>
           <div id="adminLoginAlert"></div>
           <div class="field">
             <label for="adminEmail">Email</label>
@@ -816,9 +816,6 @@
             <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password">
           </div>
           <button class="btn-gold" style="width:100%" onclick="adminLogin()">Log in</button>
-          <div class="note-box" style="margin-top:20px">
-            Staff accounts are created by whoever manages the Supabase project (Authentication → Add user), then added to the <code>staff</code> table — see <code>setup.sql</code>. There's no code hidden in this page to change; access is checked by the database itself.
-          </div>
         </div>
       </div>
 
@@ -999,9 +996,6 @@
           </div>
         </div>
 
-        <div class="note-box" style="margin-top:8px">
-          <strong>How access is protected now:</strong> staff log in with a real account (Supabase Authentication), and parents log in with their Student ID and PIN, which is also a real account under the hood — nothing is checked in this page's own code anymore. Postgres enforces who can see what: a parent's login can only ever read their own child's results, fees and payments, and only staff accounts listed in the <code>staff</code> table can read or write everyone's records. Removing a student here deletes their record, but not their login account itself, since deleting accounts requires a private key that must never sit inside a public webpage — that part is a five-minute job for whoever manages the Supabase project, from the dashboard.
-        </div>
       </div>
 
     </div>
@@ -1136,7 +1130,7 @@ function friendlyError(error){
   if(!error) return 'Something went wrong. Please try again.';
   const msg = error.message || String(error);
   if(/Invalid login credentials/i.test(msg)) return 'That ID/email and password don\u2019t match our records.';
-  if(/Email not confirmed/i.test(msg)) return 'This account needs email confirmation turned off in Supabase — see the setup note.';
+  if(/Email not confirmed/i.test(msg)) return 'This account isn\u2019t active yet. Contact the school office.';
   return msg;
 }
 
@@ -1287,7 +1281,7 @@ async function adminLogin(){
   const { data: staffRow } = await supabaseClient
     .from('staff').select('user_id').eq('user_id', data.user.id).maybeSingle();
   if(!staffRow){
-    alertBox.innerHTML = '<div class="alert alert-error">This account is not registered as staff. Ask whoever manages Supabase to add it to the staff table.</div>';
+    alertBox.innerHTML = '<div class="alert alert-error">This account is not registered as staff. Contact your school\u2019s site administrator.</div>';
     await supabaseClient.auth.signOut();
     return;
   }
@@ -1349,7 +1343,7 @@ async function registerStudent(){
   }
   const newUserId = signupData.user ? signupData.user.id : null;
   if(!newUserId){
-    alertBox.innerHTML = '<div class="alert alert-error">Account creation did not complete. Check that "Confirm email" is turned off in Supabase (see setup note).</div>';
+    alertBox.innerHTML = '<div class="alert alert-error">Account creation did not complete. Please try again, or contact your site administrator if this continues.</div>';
     return;
   }
 
@@ -1385,7 +1379,7 @@ async function renderStudentsList(){
   box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 async function deleteStudent(id){
-  if(!confirm('Remove this student record? Their results and payment history stay on file. Their portal login account is not deleted (that needs the Supabase dashboard).')) return;
+  if(!confirm('Remove this student record? Their results and payment history stay on file. Their portal login is deactivated separately by your site administrator.')) return;
   const { error } = await supabaseClient.from('students').delete().eq('student_id', id);
   if(error){
     alert('Could not remove student: ' + error.message);
