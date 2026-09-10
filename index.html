@@ -734,7 +734,7 @@
       </div>
       <div class="map-frame">
         <iframe
-          src="https://www.google.com/maps?q=Malkali+Farm+Mando+Kaduna+Nigeria&output=embed"
+          src="https://www.google.com/maps?q=Maflun+Academy,10.5716942,7.4010234&z=17&output=embed"
           allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"
           title="Map to Maflun Academy"></iframe>
       </div>
@@ -942,6 +942,10 @@
 
           <div class="panel">
             <h3>All students</h3>
+            <p class="hint">Grouped by class. Search by name or Student ID.</p>
+            <div class="field" style="max-width:360px">
+              <input id="studentSearch" type="text" placeholder="Search students…" oninput="renderStudentsList()">
+            </div>
             <div id="studentsList"></div>
           </div>
         </div>
@@ -951,6 +955,10 @@
           <div class="panel">
             <h3>Enter / edit results</h3>
             <div id="resultAlert"></div>
+            <div class="field">
+              <label>Find student</label>
+              <input id="resStudentSearch" type="text" placeholder="Search by name or Student ID…" oninput="populateResultStudentSelect()">
+            </div>
             <div class="field-row">
               <div class="field">
                 <label>Student</label>
@@ -982,6 +990,12 @@
             </div>
 
             <button class="btn-gold" onclick="saveResult()">Save result</button>
+          </div>
+
+          <div class="panel">
+            <h3>Result history</h3>
+            <p class="hint">Every term saved for the selected student, kept on record — nothing is overwritten between terms.</p>
+            <div id="resultHistory"></div>
           </div>
         </div>
 
@@ -1395,6 +1409,18 @@ function adminTab(tab){
   if(tab==='payments') { populatePayStudentSelect(); renderPaymentsLog(); }
 }
 
+/* Standard class order ("sets"), used to group and sort students consistently. */
+const CLASS_ORDER = ['Nursery 1','Nursery 2','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS 1','JSS 2','JSS 3','SSS 1','SSS 2','SSS 3'];
+function classRank(cls){
+  const i = CLASS_ORDER.indexOf(cls);
+  return i === -1 ? CLASS_ORDER.length : i;
+}
+function matchesSearch(s, q){
+  if(!q) return true;
+  q = q.trim().toLowerCase();
+  return s.student_id.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+}
+
 /* --- Students --- */
 async function registerStudent(){
   const alertBox = document.getElementById('studentAlert');
@@ -1456,11 +1482,26 @@ async function renderStudentsList(){
     box.innerHTML = '<div class="empty-state">No students registered yet.</div>';
     return;
   }
-  const rows = students.map(s=>
-    '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.class_name)+'</td><td>'+esc(s.phone)+'</td>'+
-    '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
-  ).join('');
-  box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  const q = (document.getElementById('studentSearch')||{}).value || '';
+  const filtered = students.filter(s=>matchesSearch(s,q));
+  if(!filtered.length){
+    box.innerHTML = '<div class="empty-state">No students match that search.</div>';
+    return;
+  }
+  const byClass = {};
+  filtered.forEach(s=>{
+    (byClass[s.class_name] = byClass[s.class_name] || []).push(s);
+  });
+  const classes = Object.keys(byClass).sort((a,b)=>classRank(a)-classRank(b));
+  const html = classes.map(cls=>{
+    const rows = byClass[cls].map(s=>
+      '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.phone)+'</td>'+
+      '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
+    ).join('');
+    return '<h4 style="margin:24px 0 8px;font-size:15px;color:var(--brand-deep)">'+esc(cls)+' <span style="color:var(--ink-soft);font-weight:400">('+byClass[cls].length+')</span></h4>'+
+      '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).join('');
+  box.innerHTML = html;
 }
 async function deleteStudent(id){
   if(!confirm('Remove this student record? Their results and payment history stay on file. Their portal login is deactivated separately by your site administrator.')) return;
@@ -1477,9 +1518,33 @@ async function deleteStudent(id){
 async function populateResultStudentSelect(){
   const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
   const sel = document.getElementById('resStudent');
-  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
-  if(students && students.length) loadResultForm();
-  else document.getElementById('subjectRows').innerHTML = '<div class="empty-state">Register a student first.</div>';
+  const prevValue = sel.value;
+  const q = (document.getElementById('resStudentSearch')||{}).value || '';
+  const filtered = (students||[]).filter(s=>matchesSearch(s,q));
+
+  if(!students || !students.length){
+    sel.innerHTML = '';
+    document.getElementById('subjectRows').innerHTML = '<div class="empty-state">Register a student first.</div>';
+    document.getElementById('resultHistory').innerHTML = '';
+    return;
+  }
+  if(!filtered.length){
+    sel.innerHTML = '<option value="">No matches</option>';
+    document.getElementById('subjectRows').innerHTML = '<div class="empty-state">No students match that search.</div>';
+    document.getElementById('resultHistory').innerHTML = '';
+    return;
+  }
+  const byClass = {};
+  filtered.forEach(s=>{ (byClass[s.class_name] = byClass[s.class_name] || []).push(s); });
+  const classes = Object.keys(byClass).sort((a,b)=>classRank(a)-classRank(b));
+  sel.innerHTML = classes.map(cls=>
+    '<optgroup label="'+esc(cls)+'">' +
+    byClass[cls].map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('') +
+    '</optgroup>'
+  ).join('');
+  // Keep the same student selected across a search refinement, if still in the list.
+  if(filtered.some(s=>s.student_id===prevValue)) sel.value = prevValue;
+  loadResultForm();
 }
 function subjectRowHtml(name, score){
   const g = gradeFor(score);
@@ -1504,7 +1569,10 @@ function addSubjectRow(name, score){
 }
 async function loadResultForm(){
   const studentId = document.getElementById('resStudent').value;
-  if(!studentId) return;
+  if(!studentId){
+    document.getElementById('resultHistory').innerHTML = '';
+    return;
+  }
   const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
   const term = document.getElementById('resTermInput').value;
   const { data: rec } = await supabaseClient
@@ -1519,6 +1587,32 @@ async function loadResultForm(){
     defaultSubjects.forEach(s=>addSubjectRow(s, ''));
   }
   document.getElementById('resRemarks').value = (rec && rec.remarks) ? rec.remarks : '';
+  renderResultHistory(studentId);
+}
+async function renderResultHistory(studentId){
+  const box = document.getElementById('resultHistory');
+  const { data: history, error } = await supabaseClient
+    .from('results').select('*').eq('student_id', studentId)
+    .order('session', {ascending:false}).order('term', {ascending:false});
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load result history right now.</div>';
+    return;
+  }
+  if(!history || !history.length){
+    box.innerHTML = '<div class="empty-state">No results saved yet for this student.</div>';
+    return;
+  }
+  const rows = history.map(r=>{
+    const when = r.updated_at ? new Date(r.updated_at).toLocaleDateString('en-GB') : '—';
+    return '<tr><td>'+esc(r.session)+'</td><td>'+esc(r.term)+'</td><td>'+(r.subjects?r.subjects.length:0)+' subjects</td><td>'+when+'</td>'+
+      '<td><div class="row-actions"><button onclick="loadHistoryEntry(\''+esc(r.session)+'\',\''+esc(r.term)+'\')">Open</button></div></td></tr>';
+  }).join('');
+  box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Session</th><th>Term</th><th>Subjects</th><th>Last updated</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function loadHistoryEntry(session, term){
+  document.getElementById('resSessionInput').value = session;
+  document.getElementById('resTermInput').value = term;
+  loadResultForm();
 }
 async function saveResult(){
   const alertBox = document.getElementById('resultAlert');
@@ -1553,6 +1647,7 @@ async function saveResult(){
     return;
   }
   alertBox.innerHTML = '<div class="alert alert-good">Result saved for '+esc(studentId)+' — '+esc(session)+', '+esc(term)+'.</div>';
+  renderResultHistory(studentId);
 }
 
 /* --- Fees --- */
@@ -1592,7 +1687,14 @@ async function renderFeesList(){
 async function populatePayStudentSelect(){
   const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
   const sel = document.getElementById('payStudent');
-  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
+  const byClass = {};
+  (students||[]).forEach(s=>{ (byClass[s.class_name] = byClass[s.class_name] || []).push(s); });
+  const classes = Object.keys(byClass).sort((a,b)=>classRank(a)-classRank(b));
+  sel.innerHTML = classes.map(cls=>
+    '<optgroup label="'+esc(cls)+'">' +
+    byClass[cls].map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('') +
+    '</optgroup>'
+  ).join('');
 }
 async function recordPayment(){
   const alertBox = document.getElementById('recordPayAlert');
