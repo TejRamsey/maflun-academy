@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --ink:#241F42;
@@ -21,6 +22,8 @@
     --paper-dim:#EFEBE1;
     --line: rgba(36,31,66,0.14);
     --line-on-dark: rgba(217,186,92,0.32);
+    --good:#3F7A4F;
+    --bad:#B4453C;
     --max: 1120px;
   }
   *{box-sizing:border-box;}
@@ -44,12 +47,19 @@
   img{max-width:100%;display:block;}
   .wrap{max-width:var(--max); margin:0 auto; padding:0 32px;}
   @media (max-width:640px){ .wrap{padding:0 20px;} }
+  button{ font-family:inherit; }
 
   /* ---------- Header ---------- */
   header{
     position:sticky; top:0; z-index:50;
-    background:var(--paper);
+    background:rgba(248,246,241,0.88);
+    backdrop-filter:saturate(160%) blur(10px);
+    -webkit-backdrop-filter:saturate(160%) blur(10px);
     border-bottom:1px solid var(--line);
+    transition:box-shadow .25s ease, border-color .25s ease;
+  }
+  header.scrolled{
+    box-shadow:0 8px 24px -18px rgba(36,31,66,0.35);
   }
   .nav{
     display:flex; align-items:center; justify-content:space-between;
@@ -58,6 +68,7 @@
   .brand{
     display:flex; align-items:center; gap:12px;
     text-decoration:none;
+    background:none; border:none; cursor:pointer; padding:0;
   }
   .crest-img{
     width:52px; height:52px;
@@ -68,16 +79,21 @@
     font-family:'Fraunces', serif; font-weight:600; font-size:19px;
     letter-spacing:0.01em;
   }
-  nav.links{display:flex; gap:32px; font-size:15px;}
-  nav.links a{text-decoration:none; padding:4px 0; border-bottom:1px solid transparent; transition:border-color .15s ease;}
-  nav.links a:hover{border-color:var(--gold);}
+  nav.links{display:flex; gap:28px; font-size:15px;}
+  nav.links a, nav.links button.linklike{
+    text-decoration:none; padding:4px 0; border-bottom:1px solid transparent;
+    transition:border-color .15s ease; background:none; border-top:none; border-left:none; border-right:none;
+    color:var(--ink); font-size:15px; cursor:pointer;
+  }
+  nav.links a:hover, nav.links button.linklike:hover{border-color:var(--gold);}
   .nav-cta{
     background:var(--ink); color:var(--paper); text-decoration:none;
-    padding:10px 20px; border-radius:2px; font-size:14px; font-weight:500;
+    padding:10px 20px; border-radius:10px; font-size:14px; font-weight:500;
     border:1px solid var(--ink);
-    transition: background .15s ease, color .15s ease;
+    transition: background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+    cursor:pointer;
   }
-  .nav-cta:hover{ background:transparent; color:var(--ink); }
+  .nav-cta:hover{ background:transparent; color:var(--ink); transform:translateY(-1px); box-shadow:0 6px 16px -8px rgba(36,31,66,0.4); }
   .menu-btn{ display:none; background:none; border:none; cursor:pointer; padding:6px; }
   .menu-btn span{ display:block; width:24px; height:2px; background:var(--ink); margin:5px 0; }
 
@@ -90,15 +106,19 @@
       border-top:1px solid var(--line);
     }
     .mobile-menu.open{ display:flex; }
-    .mobile-menu a{
+    .mobile-menu a, .mobile-menu button.linklike{
       padding:16px 0; text-decoration:none; border-bottom:1px solid var(--line);
-      font-size:16px;
+      font-size:16px; background:none; border-left:none; border-right:none; border-top:none;
+      text-align:left; color:var(--ink); cursor:pointer; width:100%;
     }
   }
 
   /* ---------- Hero ---------- */
   .hero{
-    background:var(--ink);
+    background:
+      radial-gradient(ellipse 60% 55% at 82% 8%, rgba(140,130,184,0.35), transparent 60%),
+      radial-gradient(ellipse 55% 50% at 8% 95%, rgba(201,162,39,0.14), transparent 60%),
+      linear-gradient(160deg, #241F42 0%, #2C2650 55%, #241F42 100%);
     color:var(--paper);
     position:relative;
     overflow:hidden;
@@ -141,22 +161,47 @@
     padding:14px 26px;
     font-weight:600;
     font-size:15px;
-    border-radius:2px;
+    border-radius:10px;
     border:1px solid var(--gold);
-    transition:opacity .15s ease;
+    transition:opacity .15s ease, transform .15s ease, box-shadow .15s ease;
+    cursor:pointer;
+    display:inline-block;
   }
-  .btn-gold:hover{ opacity:0.85; }
+  .btn-gold:hover{ opacity:0.92; transform:translateY(-1px); box-shadow:0 10px 24px -10px rgba(201,162,39,0.55); }
+  .btn-gold:active{ transform:translateY(0); }
   .btn-outline{
     color:var(--paper);
     text-decoration:none;
     padding:14px 26px;
     font-weight:500;
     font-size:15px;
-    border-radius:2px;
+    border-radius:10px;
     border:1px solid var(--line-on-dark);
-    transition:border-color .15s ease, background .15s ease;
+    transition:border-color .15s ease, background .15s ease, transform .15s ease;
+    cursor:pointer;
+    background:none;
+    display:inline-block;
   }
-  .btn-outline:hover{ border-color:var(--gold); background:rgba(217,186,92,0.06); }
+  .btn-outline:hover{ border-color:var(--gold); background:rgba(217,186,92,0.06); transform:translateY(-1px); }
+
+  .btn-ink{
+    background:var(--ink); color:var(--paper); text-decoration:none;
+    padding:13px 24px; border-radius:10px; font-size:14.5px; font-weight:500;
+    border:1px solid var(--ink); cursor:pointer; display:inline-block;
+    transition:background .15s ease,color .15s ease, transform .15s ease;
+  }
+  .btn-ink:hover{ background:transparent; color:var(--ink); transform:translateY(-1px); }
+  .btn-ghost{
+    background:none; color:var(--ink-soft); text-decoration:underline;
+    text-decoration-color:var(--line); border:none; cursor:pointer;
+    font-size:14.5px; padding:6px 0;
+  }
+  .btn-ghost:hover{ color:var(--ink); text-decoration-color:var(--gold); }
+  .btn-danger{
+    background:none; color:var(--bad); border:1px solid rgba(180,69,60,0.35);
+    padding:8px 14px; border-radius:10px; font-size:13.5px; cursor:pointer;
+  }
+  .btn-danger:hover{ background:rgba(180,69,60,0.06); }
 
   .hero-emblem{
     display:flex; align-items:center; justify-content:center;
@@ -167,8 +212,16 @@
     position:relative;
     padding:18px;
   }
+  .emblem-ring::before{
+    content:'';
+    position:absolute; inset:-10%;
+    background:radial-gradient(circle, rgba(217,186,92,0.28) 0%, rgba(217,186,92,0) 68%);
+    border-radius:50%;
+    z-index:0;
+  }
   .emblem-ring img{
     width:100%;
+    position:relative; z-index:1;
     filter: drop-shadow(0 18px 40px rgba(0,0,0,0.35));
   }
 
@@ -213,10 +266,13 @@
   .about-grid p + p{ margin-top:16px; }
   .pillars{ display:flex; flex-direction:column; }
   .pillar{
-    padding:22px 0;
+    padding:22px 4px;
     border-top:1px solid var(--line);
     display:grid; grid-template-columns:56px 1fr; gap:18px;
+    transition:padding-left .2s ease, background .2s ease;
+    border-radius:6px;
   }
+  .pillar:hover{ padding-left:12px; background:rgba(140,130,184,0.05); }
   .pillar:last-child{ border-bottom:1px solid var(--line); }
   .pillar-mark{ font-family:'Fraunces', serif; color:var(--brand-deep); font-size:17px; }
   .pillar h3{ font-size:18px; font-weight:600; }
@@ -227,12 +283,17 @@
     display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
     background:var(--line);
     border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
   }
   @media (max-width:760px){ .stages{ grid-template-columns:1fr; } }
   .stage{
     background:var(--paper);
     padding:36px 32px;
+    transition:background .2s ease, transform .2s ease;
+    position:relative;
   }
+  .stage:hover{ background:#fff; transform:translateY(-3px); box-shadow:0 20px 36px -28px rgba(36,31,66,0.3); z-index:1; }
   .stage h3{ font-size:21px; margin-bottom:12px; }
   .stage-age{ color:var(--brand-deep); font-size:14px; margin-bottom:16px; display:block; }
   .stage ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:15px; }
@@ -245,9 +306,12 @@
   .steps{ display:flex; flex-direction:column; }
   .step{
     display:grid; grid-template-columns:60px 1fr; gap:20px;
-    padding:26px 0;
+    padding:26px 4px;
     border-top:1px solid var(--line);
+    transition:padding-left .2s ease;
+    border-radius:6px;
   }
+  .step:hover{ padding-left:12px; }
   .steps .step:last-child{ border-bottom:1px solid var(--line); }
   .step-num{ font-family:'Fraunces', serif; font-size:26px; color:var(--brand-deep); }
   .step h3{ font-size:17px; font-weight:600; margin-bottom:6px; }
@@ -257,9 +321,13 @@
     margin-top:44px;
     display:flex; align-items:center; justify-content:space-between;
     flex-wrap:wrap; gap:20px;
-    background:var(--ink); color:var(--paper);
+    background:
+      radial-gradient(ellipse 70% 90% at 90% -10%, rgba(140,130,184,0.4), transparent 60%),
+      linear-gradient(160deg, #241F42 0%, #2C2650 100%);
+    color:var(--paper);
     padding:36px 40px;
-    border-radius:2px;
+    border-radius:16px;
+    box-shadow:0 24px 48px -28px rgba(36,31,66,0.5);
   }
   .admissions-cta h3{ color:var(--paper); font-size:22px; max-width:20ch; }
   .admissions-cta p{ color:#D8D3EA; margin-top:8px; font-size:15px; }
@@ -269,7 +337,8 @@
     display:grid; grid-template-columns:1fr 1fr; gap:64px;
   }
   @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; gap:40px; } }
-  .contact-item{ padding:20px 0; border-top:1px solid var(--line); }
+  .contact-item{ padding:20px 4px; border-top:1px solid var(--line); transition:padding-left .2s ease; border-radius:6px; }
+  .contact-item:hover{ padding-left:10px; background:rgba(140,130,184,0.05); }
   .contact-item:last-child{ border-bottom:1px solid var(--line); }
   .contact-label{ font-size:13px; color:var(--brand-deep); margin-bottom:6px; }
   .contact-value{ font-size:17px; }
@@ -280,6 +349,8 @@
     height:100%;
     min-height:340px;
     filter:grayscale(0.15);
+    border-radius:14px;
+    overflow:hidden;
   }
   .map-frame iframe{ width:100%; height:100%; min-height:340px; border:0; display:block; }
 
@@ -298,8 +369,8 @@
   .footer-brand-row img{ width:34px; height:34px; object-fit:contain; }
   .footer-brand{ color:var(--paper); font-family:'Fraunces', serif; font-size:19px; }
   .footer-cols{ display:flex; gap:64px; flex-wrap:wrap; }
-  .footer-col a{ display:block; text-decoration:none; color:#B6AFD6; padding:4px 0; font-size:14px; }
-  .footer-col a:hover{ color:var(--gold-soft); }
+  .footer-col a, .footer-col button.linklike{ display:block; text-decoration:none; color:#B6AFD6; padding:4px 0; font-size:14px; background:none; border:none; cursor:pointer; text-align:left; }
+  .footer-col a:hover, .footer-col button.linklike:hover{ color:var(--gold-soft); }
   .footer-bottom{
     padding-top:22px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
   }
@@ -307,34 +378,163 @@
   .reveal{ animation: rise .7s ease both; }
   @keyframes rise{ from{ opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;} }
   @media (prefers-reduced-motion: reduce){ .reveal{ animation:none; } }
+
+  .reveal-onscroll{ opacity:0; transform:translateY(20px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal-onscroll.in-view{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal-onscroll{ opacity:1; transform:none; transition:none; }
+  }
+
+  /* ================= Portal / Admin shared ================= */
+  .app-hero{
+    background:
+      radial-gradient(ellipse 60% 70% at 85% 0%, rgba(140,130,184,0.32), transparent 60%),
+      linear-gradient(160deg, #241F42 0%, #2C2650 60%, #241F42 100%);
+    color:var(--paper);
+  }
+  .app-hero .wrap{ padding:64px 32px 48px; }
+  .app-hero .eyebrow{ margin-bottom:14px; }
+  .app-hero h1{ font-size:clamp(30px,4vw,42px); color:var(--paper); max-width:20ch; }
+  .app-hero p{ margin-top:14px; color:#D8D3EA; max-width:52ch; font-size:15.5px; }
+
+  .panel{
+    background:#fff; border:1px solid var(--line); padding:36px;
+    border-radius:14px;
+    box-shadow:0 1px 2px rgba(36,31,66,0.03), 0 16px 32px -24px rgba(36,31,66,0.18);
+    transition:box-shadow .2s ease;
+  }
+  .panel:hover{ box-shadow:0 1px 2px rgba(36,31,66,0.04), 0 20px 40px -22px rgba(36,31,66,0.24); }
+  .panel + .panel{ margin-top:24px; }
+  .panel h3{ font-size:19px; margin-bottom:6px; }
+  .panel .hint{ color:var(--ink-soft); font-size:14px; margin-bottom:22px; }
+
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:13.5px; color:var(--brand-deep); margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; border:1px solid var(--line); background:#fff;
+    border-radius:10px; font-family:inherit; font-size:15px; color:var(--ink);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color:var(--brand); box-shadow:0 0 0 4px rgba(140,130,184,0.18);
+  }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .field-row{ grid-template-columns:1fr; } }
+
+  .login-shell{
+    max-width:440px; margin:0 auto;
+  }
+  .login-shell .panel{
+    position:relative;
+    overflow:hidden;
+  }
+  .login-shell .panel::before{
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, var(--brand-deep), var(--gold));
+  }
+
+  .alert{
+    padding:12px 16px; border-radius:10px; font-size:14.5px; margin-bottom:18px;
+    border:1px solid transparent;
+  }
+  .alert-error{ background:rgba(180,69,60,0.08); color:var(--bad); border-color:rgba(180,69,60,0.25); }
+  .alert-good{ background:rgba(63,122,79,0.08); color:var(--good); border-color:rgba(63,122,79,0.25); }
+
+  .tabbar{ display:flex; gap:8px; border-bottom:1px solid var(--line); margin-bottom:32px; flex-wrap:wrap; }
+  .tabbar button{
+    background:none; border:none; padding:12px 4px; margin-right:22px; font-size:15px;
+    color:var(--ink-soft); cursor:pointer; border-bottom:2px solid transparent; font-family:inherit;
+    transition:color .15s ease, border-color .2s ease;
+  }
+  .tabbar button:hover{ color:var(--ink); }
+  .tabbar button.active{ color:var(--ink); border-color:var(--gold); font-weight:600; }
+
+  .dash-top{
+    display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;
+    margin-bottom:28px;
+  }
+  .dash-id{ font-size:13.5px; color:var(--ink-soft); }
+  .dash-name{ font-size:24px; }
+
+  table.data{ width:100%; border-collapse:collapse; font-size:15px; }
+  table.data th, table.data td{ text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); }
+  table.data th{ color:var(--brand-deep); font-size:13px; font-weight:600; }
+  table.data tbody tr{ transition:background .15s ease; }
+  table.data tbody tr:hover{ background:rgba(140,130,184,0.06); }
+  table.data tr:last-child td{ border-bottom:none; }
+  .table-wrap{ overflow-x:auto; }
+
+  .badge{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:12.5px; font-weight:600; }
+  .badge-good{ background:rgba(63,122,79,0.1); color:var(--good); }
+  .badge-warn{ background:rgba(201,162,39,0.14); color:#8a6c14; }
+  .badge-bad{ background:rgba(180,69,60,0.1); color:var(--bad); }
+
+  .stat-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:28px; border-radius:14px; overflow:hidden; }
+  @media (max-width:700px){ .stat-cards{ grid-template-columns:1fr; } }
+  .stat-card{ background:#fff; padding:24px 26px; transition:background .2s ease; }
+  .stat-card:hover{ background:var(--paper-dim); }
+  .stat-card .label{ font-size:13px; color:var(--brand-deep); margin-bottom:8px; }
+  .stat-card .value{ font-family:'Fraunces',serif; font-size:26px; }
+
+  .row-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .row-actions button{ font-size:13px; padding:6px 12px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .row-actions button:hover{ border-color:var(--brand); }
+
+  .empty-state{ padding:40px 20px; text-align:center; color:var(--ink-soft); border:1px dashed var(--line); border-radius:10px; }
+
+  .subject-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .subject-row{ display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:10px; align-items:center; }
+  @media (max-width:640px){ .subject-row{ grid-template-columns:1fr 1fr; } }
+  .subject-row input{ padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14.5px; }
+  .subject-row .grade-chip{ font-size:13px; text-align:center; padding:8px 6px; }
+  .subject-row .remove-btn{ background:none; border:none; color:var(--bad); cursor:pointer; font-size:18px; line-height:1; }
+
+  .note-box{ background:var(--paper-dim); border:1px solid var(--line); padding:16px 18px; font-size:13.5px; color:var(--ink-soft); border-radius:10px; margin-top:8px; }
+  .note-box strong{ color:var(--ink); }
+
+  .receipt{ border:1px solid var(--line); padding:24px; background:#fff; }
+  .receipt-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:14.5px; }
+  .receipt-row:last-child{ border-bottom:none; font-weight:600; }
+
+  .app-page[style*="display:none"]{ display:none; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap nav">
-    <a class="brand" href="#top">
+    <button class="brand" data-page="home" onclick="showPage('home')">
       <img class="crest-img" src="logo.png" alt="Maflun Academy crest">
       <span class="brand-name">Maflun Academy</span>
-    </a>
+    </button>
     <nav class="links">
-      <a href="#about">About</a>
-      <a href="#academics">Academics</a>
-      <a href="#admissions">Admissions</a>
-      <a href="#contact">Contact</a>
+      <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
+      <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
+      <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
+      <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
+      <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
+      <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Contact</a>
     </nav>
-    <a class="nav-cta" href="#contact">Enquire</a>
+    <button class="nav-cta" onclick="showPage('portal')">Student Portal</button>
     <button class="menu-btn" id="menuBtn" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="mobile-menu wrap" id="mobileMenu">
-    <a href="#about">About</a>
-    <a href="#academics">Academics</a>
-    <a href="#admissions">Admissions</a>
-    <a href="#contact">Contact</a>
+    <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
+    <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
+    <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
+    <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
+    <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
+    <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Contact</a>
   </div>
 </header>
+
+<!-- ============================================================ -->
+<!-- HOME PAGE                                                     -->
+<!-- ============================================================ -->
+<div id="page-home" class="app-page">
 
 <section class="hero" id="top">
   <div class="wrap">
@@ -343,8 +543,8 @@
       <h1>Building character and competence, one pupil at a time.</h1>
       <p class="hero-sub">Maflun Academy is a nursery, primary and secondary school committed to disciplined learning, strong values and results that prepare pupils for life beyond the classroom.</p>
       <div class="hero-actions">
-        <a class="btn-gold" href="#admissions">Start admission</a>
-        <a class="btn-outline" href="#contact">Visit the school</a>
+        <a class="btn-gold" href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Start admission</a>
+        <button class="btn-outline" onclick="showPage('portal')">Portal &amp; fee balance</button>
       </div>
       <div class="hero-stats">
         <div>
@@ -369,7 +569,7 @@
 
 <section id="about">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal-onscroll">
       <div class="section-num">About</div>
       <div>
         <h2>A school built on discipline, care and steady standards.</h2>
@@ -381,7 +581,7 @@
         <p>Maflun Academy sits on School Road in Malkali Farm, Mando, Kaduna — a school built to give children in the community a place where learning is taken seriously and every pupil is known by name.</p>
         <p>We keep classes structured and teachers accountable, so that a child's progress is visible to parents at every stage, from nursery through to senior secondary school. Our motto, <em>Brighter Future</em>, guides everything we do.</p>
       </div>
-      <div class="pillars">
+      <div class="pillars reveal-onscroll">
         <div class="pillar">
           <div class="pillar-mark">01</div>
           <div>
@@ -412,14 +612,14 @@
 
 <section id="academics">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal-onscroll">
       <div class="section-num">Academics</div>
       <div>
         <h2>One school, three stages of growth.</h2>
         <p>A single, connected pathway from a child's earliest years through to their final school exams.</p>
       </div>
     </div>
-    <div class="stages">
+    <div class="stages reveal-onscroll">
       <div class="stage">
         <span class="stage-age">Ages 3–5</span>
         <h3>Nursery</h3>
@@ -453,14 +653,14 @@
 
 <section id="admissions" class="admissions">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal-onscroll">
       <div class="section-num">Admissions</div>
       <div>
         <h2>How to enrol your child.</h2>
         <p>Admission is open across the school year, subject to space in each class.</p>
       </div>
     </div>
-    <div class="steps">
+    <div class="steps reveal-onscroll">
       <div class="step">
         <div class="step-num">1</div>
         <div>
@@ -486,11 +686,11 @@
         <div class="step-num">4</div>
         <div>
           <h3>Resume</h3>
-          <p>Receive your child's class placement, resumption date and requirements list.</p>
+          <p>Receive your child's class placement, resumption date and requirements list. The school office will set up your child's portal login.</p>
         </div>
       </div>
     </div>
-    <div class="admissions-cta">
+    <div class="admissions-cta reveal-onscroll">
       <div>
         <h3>Ready to apply, or still deciding?</h3>
         <p>Speak with the admissions office directly — we're happy to answer questions first.</p>
@@ -502,14 +702,14 @@
 
 <section id="contact">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal-onscroll">
       <div class="section-num">Contact</div>
       <div>
         <h2>Visit us or reach out.</h2>
         <p>The school office is open on weekdays for enquiries, visits and registration.</p>
       </div>
     </div>
-    <div class="contact-grid">
+    <div class="contact-grid reveal-onscroll">
       <div>
         <div class="contact-item">
           <div class="contact-label">Address</div>
@@ -542,6 +742,329 @@
   </div>
 </section>
 
+</div><!-- /page-home -->
+
+<!-- ============================================================ -->
+<!-- PORTAL PAGE (students / parents)                              -->
+<!-- ============================================================ -->
+<div id="page-portal" class="app-page" style="display:none">
+  <section class="app-hero">
+    <div class="wrap">
+      <div class="eyebrow">Student &amp; Parent Portal</div>
+      <h1>Check results and your school fee balance.</h1>
+      <p>Log in with the Student ID and PIN issued by the school office. If you don't have one yet, contact the admissions office.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+
+      <!-- LOGIN -->
+      <div id="portalLogin" class="login-shell">
+        <div class="panel">
+          <h3>Log in</h3>
+          <p class="hint">Enter your child's Student ID and the PIN given by the school office.</p>
+          <div id="portalLoginAlert"></div>
+          <div class="field">
+            <label for="portalId">Student ID</label>
+            <input id="portalId" type="text" placeholder="e.g. MAF-0001" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="portalPin">PIN</label>
+            <input id="portalPin" type="password" placeholder="4–6 digit PIN" autocomplete="off">
+          </div>
+          <button class="btn-gold" style="width:100%" onclick="portalLogin()">Log in</button>
+          <div class="note-box" style="margin-top:20px">
+            New here? The school office creates every Student ID and PIN from the Staff Admin panel during registration.
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="portalDash" style="display:none">
+        <div class="dash-top">
+          <div>
+            <div class="dash-id" id="pdId"></div>
+            <div class="dash-name" id="pdName"></div>
+            <div class="dash-id" id="pdClass"></div>
+          </div>
+          <button class="btn-outline" style="color:var(--ink);border-color:var(--line)" onclick="portalLogout()">Log out</button>
+        </div>
+
+        <div class="tabbar">
+          <button id="ptab-results" class="active" onclick="portalTab('results')">Results</button>
+          <button id="ptab-fees" onclick="portalTab('fees')">Fees</button>
+        </div>
+
+        <div id="ppane-results">
+          <div class="panel">
+            <h3>Term results</h3>
+            <p class="hint">Select a session and term to view your child's report.</p>
+            <div class="field-row">
+              <div class="field">
+                <label>Session</label>
+                <select id="resSession" onchange="renderPortalResults()"></select>
+              </div>
+              <div class="field">
+                <label>Term</label>
+                <select id="resTerm" onchange="renderPortalResults()">
+                  <option>First Term</option>
+                  <option>Second Term</option>
+                  <option>Third Term</option>
+                </select>
+              </div>
+            </div>
+            <div id="resultsBody"></div>
+          </div>
+        </div>
+
+        <div id="ppane-fees" style="display:none">
+          <div class="panel">
+            <h3>Check balance for a term</h3>
+            <div class="field-row">
+              <div class="field">
+                <label>Session</label>
+                <select id="feeSession" onchange="renderPortalFees()"></select>
+              </div>
+              <div class="field">
+                <label>Term</label>
+                <select id="feeTerm" onchange="renderPortalFees()">
+                  <option>First Term</option>
+                  <option>Second Term</option>
+                  <option>Third Term</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="stat-cards" id="feeStatCards"></div>
+          <div class="panel">
+            <h3>Payment history</h3>
+            <p class="hint">Fees are paid at the school office (cash or bank transfer). The office records each payment here once received, so your balance stays up to date.</p>
+            <div id="paymentHistory"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div><!-- /page-portal -->
+
+<!-- ============================================================ -->
+<!-- ADMIN PAGE (staff)                                            -->
+<!-- ============================================================ -->
+<div id="page-admin" class="app-page" style="display:none">
+  <section class="app-hero">
+    <div class="wrap">
+      <div class="eyebrow">Staff Admin</div>
+      <h1>Manage students, results and fees.</h1>
+      <p>For school office and teaching staff. Register pupils, enter term results and set fee amounts.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+
+      <!-- LOGIN -->
+      <div id="adminLogin" class="login-shell">
+        <div class="panel">
+          <h3>Staff log in</h3>
+          <p class="hint">Enter your staff email and password to continue.</p>
+          <div id="adminLoginAlert"></div>
+          <div class="field">
+            <label for="adminEmail">Email</label>
+            <input id="adminEmail" type="email" placeholder="you@maflunacademy.com" autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password">
+          </div>
+          <button class="btn-gold" style="width:100%" onclick="adminLogin()">Log in</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="adminDash" style="display:none">
+        <div class="dash-top">
+          <div>
+            <div class="dash-id">Staff Admin</div>
+            <div class="dash-name">School management</div>
+          </div>
+          <button class="btn-outline" style="color:var(--ink);border-color:var(--line)" onclick="adminLogout()">Log out</button>
+        </div>
+
+        <div class="tabbar">
+          <button id="atab-students" class="active" onclick="adminTab('students')">Students</button>
+          <button id="atab-results" onclick="adminTab('results')">Results</button>
+          <button id="atab-fees" onclick="adminTab('fees')">Fees</button>
+          <button id="atab-payments" onclick="adminTab('payments')">Payments log</button>
+        </div>
+
+        <!-- STUDENTS -->
+        <div id="apane-students">
+          <div class="panel">
+            <h3>Register a student</h3>
+            <p class="hint">Creates the Student ID and PIN the parent will use to log in to the portal.</p>
+            <div id="studentAlert"></div>
+            <div class="field-row">
+              <div class="field">
+                <label>Full name</label>
+                <input id="stuName" type="text" placeholder="e.g. Amina Bello">
+              </div>
+              <div class="field">
+                <label>Class</label>
+                <select id="stuClass">
+                  <optgroup label="Nursery">
+                    <option>Nursery 1</option><option>Nursery 2</option>
+                  </optgroup>
+                  <optgroup label="Primary">
+                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                  </optgroup>
+                  <optgroup label="Secondary">
+                    <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+                    <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Parent / guardian phone</label>
+                <input id="stuPhone" type="text" placeholder="e.g. 0803 000 0000">
+              </div>
+              <div class="field">
+                <label>Portal PIN (4–6 digits)</label>
+                <input id="stuPin" type="text" placeholder="e.g. 1234">
+              </div>
+            </div>
+            <button class="btn-gold" onclick="registerStudent()">Register student</button>
+          </div>
+
+          <div class="panel">
+            <h3>All students</h3>
+            <div id="studentsList"></div>
+          </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="apane-results" style="display:none">
+          <div class="panel">
+            <h3>Enter / edit results</h3>
+            <div id="resultAlert"></div>
+            <div class="field-row">
+              <div class="field">
+                <label>Student</label>
+                <select id="resStudent" onchange="loadResultForm()"></select>
+              </div>
+              <div class="field">
+                <label>Session</label>
+                <input id="resSessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026" onchange="loadResultForm()">
+              </div>
+            </div>
+            <div class="field">
+              <label>Term</label>
+              <select id="resTermInput" onchange="loadResultForm()">
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Subjects</label>
+              <div id="subjectRows" class="subject-rows"></div>
+              <button class="btn-ghost" onclick="addSubjectRow()">+ Add subject</button>
+            </div>
+
+            <div class="field">
+              <label>Teacher's remarks</label>
+              <textarea id="resRemarks" rows="3" placeholder="Overall comment on the pupil's performance"></textarea>
+            </div>
+
+            <button class="btn-gold" onclick="saveResult()">Save result</button>
+          </div>
+        </div>
+
+        <!-- FEES -->
+        <div id="apane-fees" style="display:none">
+          <div class="panel">
+            <h3>Fee structure</h3>
+            <p class="hint">Set the amount due per term for each class. Parents see this as their balance in the portal.</p>
+            <div id="feesAlert"></div>
+            <div class="field-row">
+              <div class="field">
+                <label>Class</label>
+                <select id="feeClass">
+                  <optgroup label="Nursery">
+                    <option>Nursery 1</option><option>Nursery 2</option>
+                  </optgroup>
+                  <optgroup label="Primary">
+                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                  </optgroup>
+                  <optgroup label="Secondary">
+                    <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+                    <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="field">
+                <label>Amount per term (₦)</label>
+                <input id="feeAmount" type="number" min="0" placeholder="e.g. 45000">
+              </div>
+            </div>
+            <button class="btn-gold" onclick="saveFee()">Save fee amount</button>
+          </div>
+          <div class="panel">
+            <h3>Current fee structure</h3>
+            <div id="feesList"></div>
+          </div>
+        </div>
+
+        <!-- PAYMENTS LOG -->
+        <div id="apane-payments" style="display:none">
+          <div class="panel">
+            <h3>Record a payment received</h3>
+            <p class="hint">Log a fee payment after it's received at the office (cash, bank transfer, etc.). This updates the balance the parent sees in the portal.</p>
+            <div id="recordPayAlert"></div>
+            <div class="field-row">
+              <div class="field">
+                <label>Student</label>
+                <select id="payStudent"></select>
+              </div>
+              <div class="field">
+                <label>Session</label>
+                <input id="paySessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Term</label>
+                <select id="payTermInput">
+                  <option>First Term</option>
+                  <option>Second Term</option>
+                  <option>Third Term</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Amount received (₦)</label>
+                <input id="payAmountInput" type="number" min="1" placeholder="e.g. 45000">
+              </div>
+            </div>
+            <button class="btn-gold" onclick="recordPayment()">Record payment</button>
+          </div>
+          <div class="panel">
+            <h3>All payments received</h3>
+            <div id="paymentsLog"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+</div><!-- /page-admin -->
+
 <footer>
   <div class="wrap">
     <div class="footer-top">
@@ -551,14 +1074,16 @@
       </div>
       <div class="footer-cols">
         <div class="footer-col">
-          <a href="#about">About</a>
-          <a href="#academics">Academics</a>
-          <a href="#admissions">Admissions</a>
+          <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
+          <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
+          <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
+          <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
+          <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
         </div>
         <div class="footer-col">
           <a href="tel:08036126746">0803 612 6746</a>
           <a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a>
-          <a href="#contact">Malkali Farm, Mando, Kaduna</a>
+          <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Malkali Farm, Mando, Kaduna</a>
         </div>
       </div>
     </div>
@@ -570,15 +1095,573 @@
 </footer>
 
 <script>
-  document.getElementById('year').textContent = new Date().getFullYear();
-  const menuBtn = document.getElementById('menuBtn');
-  const mobileMenu = document.getElementById('mobileMenu');
-  menuBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('open');
+document.getElementById('year').textContent = new Date().getFullYear();
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+mobileMenu.querySelectorAll('a,button').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+
+/* Header gains a soft shadow once the page is scrolled */
+const headerEl = document.querySelector('header');
+window.addEventListener('scroll', () => {
+  headerEl.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive:true });
+
+/* Fade-and-rise sections into view as the visitor scrolls to them */
+if('IntersectionObserver' in window){
+  const revealObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.15 });
+  document.querySelectorAll('.reveal-onscroll').forEach(el=>revealObserver.observe(el));
+}else{
+  document.querySelectorAll('.reveal-onscroll').forEach(el=>el.classList.add('in-view'));
+}
+
+/* ================= Supabase backend config =================
+   1. Create a free project at https://supabase.com
+   2. Run setup.sql in the Supabase SQL Editor — it creates the
+      students / results / fees / payments / staff tables and the
+      access rules (Row Level Security) that protect them.
+   3. In Supabase: Authentication -> Providers -> Email -> turn OFF
+      "Confirm email". This lets a new student login work right away
+      instead of waiting on a confirmation email that has nowhere
+      real to go.
+   4. Create at least one staff account: Authentication -> Add user
+      (a real email + password), then run the insert shown at the
+      bottom of setup.sql to mark that account as staff.
+   5. Project Settings -> API gives you the Project URL and the
+      "anon public" key used below. The anon key is meant to be
+      public — Postgres Row Level Security (from setup.sql) is what
+      actually keeps everyone's data separated, not this key.
+================================================================= */
+const SUPABASE_URL = "https://sazlwzwbewxdnuutixbd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhemx3endiZXd4ZG51dXRpeGJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5ODU5ODgsImV4cCI6MjEwNDU2MTk4OH0.CranV-gRK8u8nhttit-hn26XgHAh2OYOARAd6Bwf_7w";
+
+// Main client: holds whichever session is active (staff or parent).
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: 'sb-maflun-main', persistSession: true, autoRefreshToken: true }
+});
+// Auxiliary client, used only for the instant when a new student
+// account is created, so that doesn't disturb the staff member's
+// own logged-in session in the main client above.
+const supabaseAux = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: 'sb-maflun-aux', persistSession: false, autoRefreshToken: false }
+});
+
+/* Student portal logins are real Supabase accounts under the hood,
+   addressed by a synthetic email built from the Student ID, so
+   parents never need to see or type an email address. */
+function studentEmail(id){
+  return id.trim().toLowerCase() + '@portal.maflunacademy.local';
+}
+
+/* ============== Page routing ============== */
+function showPage(name){
+  ['home','portal','admin'].forEach(p=>{
+    document.getElementById('page-'+p).style.display = (p===name) ? '' : 'none';
   });
-  mobileMenu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  if(name==='portal') refreshPortalSelectors();
+  if(name==='admin' && adminState.loggedIn) adminTab(adminState.tab||'students');
+}
+function goHomeAnchor(e, id){
+  e.preventDefault();
+  showPage('home');
+  setTimeout(()=>{
+    const el = document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:'smooth'});
+  }, 30);
+  return false;
+}
+
+/* ============== Small helpers ============== */
+function nextStudentId(existingIds){
+  let max = 0;
+  existingIds.forEach(id=>{
+    const m = /MAF-(\d+)/.exec(id);
+    if(m) max = Math.max(max, parseInt(m[1],10));
   });
+  return 'MAF-' + String(max+1).padStart(4,'0');
+}
+function gradeFor(score){
+  score = Number(score);
+  if(isNaN(score)) return '-';
+  if(score>=70) return 'A';
+  if(score>=60) return 'B';
+  if(score>=50) return 'C';
+  if(score>=45) return 'D';
+  return 'F';
+}
+function gradeBadgeClass(g){
+  return (g==='A'||g==='B') ? 'badge-good' : (g==='C'||g==='D') ? 'badge-warn' : 'badge-bad';
+}
+function gradeBadge(g){
+  return '<span class="badge '+gradeBadgeClass(g)+'">'+g+'</span>';
+}
+function money(n){
+  n = Number(n)||0;
+  return '₦' + n.toLocaleString('en-NG');
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function friendlyError(error){
+  if(!error) return 'Something went wrong. Please try again.';
+  const msg = error.message || String(error);
+  if(/Invalid login credentials/i.test(msg)) return 'That ID/email and password don\u2019t match our records.';
+  if(/Email not confirmed/i.test(msg)) return 'This account isn\u2019t active yet. Contact the school office.';
+  return msg;
+}
+
+/* ============== PORTAL (student / parent) ============== */
+let portalState = { loggedIn:false, student:null };
+
+async function portalLogin(){
+  const id = document.getElementById('portalId').value.trim();
+  const pin = document.getElementById('portalPin').value.trim();
+  const alertBox = document.getElementById('portalLoginAlert');
+  alertBox.innerHTML = '';
+  if(!id || !pin){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter both Student ID and PIN.</div>';
+    return;
+  }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: studentEmail(id), password: pin
+  });
+  if(error || !data.user){
+    alertBox.innerHTML = '<div class="alert alert-error">We could not match that Student ID and PIN. Check with the school office.</div>';
+    return;
+  }
+  const { data: srow, error: serr } = await supabaseClient
+    .from('students').select('*').eq('auth_user_id', data.user.id).maybeSingle();
+  if(serr || !srow){
+    alertBox.innerHTML = '<div class="alert alert-error">Login worked, but no student record is linked to it. Contact the school office.</div>';
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  portalState = { loggedIn:true, student:srow };
+  document.getElementById('portalLogin').style.display = 'none';
+  document.getElementById('portalDash').style.display = '';
+  document.getElementById('pdId').textContent = srow.student_id;
+  document.getElementById('pdName').textContent = srow.name;
+  document.getElementById('pdClass').textContent = srow.class_name;
+  document.getElementById('portalId').value='';
+  document.getElementById('portalPin').value='';
+  await refreshPortalSelectors();
+  portalTab('results');
+}
+async function portalLogout(){
+  await supabaseClient.auth.signOut();
+  portalState = { loggedIn:false, student:null };
+  document.getElementById('portalLogin').style.display = '';
+  document.getElementById('portalDash').style.display = 'none';
+  document.getElementById('portalLoginAlert').innerHTML='';
+}
+function portalTab(tab){
+  document.getElementById('ptab-results').classList.toggle('active', tab==='results');
+  document.getElementById('ptab-fees').classList.toggle('active', tab==='fees');
+  document.getElementById('ppane-results').style.display = tab==='results' ? '' : 'none';
+  document.getElementById('ppane-fees').style.display = tab==='fees' ? '' : 'none';
+  if(tab==='results') renderPortalResults();
+  if(tab==='fees') renderPortalFees();
+}
+function sessionOptions(){
+  const now = new Date().getFullYear();
+  const opts = [];
+  for(let y=now-1; y<=now+1; y++) opts.push(y+'/'+(y+1));
+  return opts;
+}
+async function refreshPortalSelectors(){
+  const opts = sessionOptions();
+  ['resSession','feeSession'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = opts.map(o=>'<option'+(o===cur?' selected':'')+'>'+o+'</option>').join('');
+  });
+}
+async function renderPortalResults(){
+  if(!portalState.loggedIn) return;
+  const session = document.getElementById('resSession').value;
+  const term = document.getElementById('resTerm').value;
+  const body = document.getElementById('resultsBody');
+  const { data: rec, error } = await supabaseClient
+    .from('results').select('*')
+    .eq('student_id', portalState.student.student_id)
+    .eq('session', session).eq('term', term).maybeSingle();
+  if(error){
+    body.innerHTML = '<div class="empty-state">Could not load results right now.</div>';
+    return;
+  }
+  if(!rec || !rec.subjects || !rec.subjects.length){
+    body.innerHTML = '<div class="empty-state">No results have been uploaded for this term yet.</div>';
+    return;
+  }
+  let rows = rec.subjects.map(s=>
+    '<tr><td>'+esc(s.name)+'</td><td>'+esc(s.score)+'</td><td>'+gradeBadge(s.grade||gradeFor(s.score))+'</td></tr>'
+  ).join('');
+  body.innerHTML =
+    '<div class="table-wrap"><table class="data"><thead><tr><th>Subject</th><th>Score</th><th>Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    (rec.remarks ? '<div class="note-box"><strong>Teacher\'s remarks:</strong> '+esc(rec.remarks)+'</div>' : '');
+}
+async function renderPortalFees(){
+  if(!portalState.loggedIn) return;
+  const st = portalState.student;
+  const session = document.getElementById('feeSession').value;
+  const term = document.getElementById('feeTerm').value;
+
+  const { data: feeRow } = await supabaseClient
+    .from('fees').select('amount').eq('class_name', st.class_name).maybeSingle();
+  const due = feeRow ? Number(feeRow.amount) : 0;
+
+  const { data: mine } = await supabaseClient
+    .from('payments').select('*').eq('student_id', st.student_id).order('paid_on', {ascending:false});
+  const payments = mine || [];
+  const paidAllTime = payments.reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const paidThisTerm = payments
+    .filter(p=>p.session===session && p.term===term)
+    .reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const balance = Math.max(due - paidThisTerm, 0);
+
+  const cards = document.getElementById('feeStatCards');
+  cards.innerHTML =
+    '<div class="stat-card"><div class="label">Fee per term (' + esc(st.class_name) + ')</div><div class="value">'+money(due)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Balance this term</div><div class="value">'+money(balance)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Total paid (all time)</div><div class="value">'+money(paidAllTime)+'</div></div>';
+
+  const hist = document.getElementById('paymentHistory');
+  if(!payments.length){
+    hist.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
+  }else{
+    const rows = payments.map(p=>
+      '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
+    ).join('');
+    hist.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+}
+
+/* ============== ADMIN (staff) ============== */
+let adminState = { loggedIn:false, tab:'students' };
+
+async function adminLogin(){
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  const alertBox = document.getElementById('adminLoginAlert');
+  alertBox.innerHTML = '';
+  if(!email || !password){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter your email and password.</div>';
+    return;
+  }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error || !data.user){
+    alertBox.innerHTML = '<div class="alert alert-error">'+esc(friendlyError(error))+'</div>';
+    return;
+  }
+  const { data: staffRow } = await supabaseClient
+    .from('staff').select('user_id').eq('user_id', data.user.id).maybeSingle();
+  if(!staffRow){
+    alertBox.innerHTML = '<div class="alert alert-error">This account is not registered as staff. Contact your school\u2019s site administrator.</div>';
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  adminState.loggedIn = true;
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminDash').style.display = '';
+  document.getElementById('adminEmail').value = '';
+  document.getElementById('adminPassword').value = '';
+  adminTab('students');
+}
+async function adminLogout(){
+  await supabaseClient.auth.signOut();
+  adminState.loggedIn = false;
+  document.getElementById('adminLogin').style.display = '';
+  document.getElementById('adminDash').style.display = 'none';
+  document.getElementById('adminLoginAlert').innerHTML = '';
+}
+function adminTab(tab){
+  adminState.tab = tab;
+  ['students','results','fees','payments'].forEach(t=>{
+    document.getElementById('atab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('apane-'+t).style.display = (t===tab) ? '' : 'none';
+  });
+  if(tab==='students') renderStudentsList();
+  if(tab==='results') populateResultStudentSelect();
+  if(tab==='fees') renderFeesList();
+  if(tab==='payments') { populatePayStudentSelect(); renderPaymentsLog(); }
+}
+
+/* --- Students --- */
+async function registerStudent(){
+  const alertBox = document.getElementById('studentAlert');
+  alertBox.innerHTML = '';
+  const name = document.getElementById('stuName').value.trim();
+  const cls = document.getElementById('stuClass').value;
+  const phone = document.getElementById('stuPhone').value.trim();
+  const pin = document.getElementById('stuPin').value.trim();
+  if(!name || !phone || !pin){
+    alertBox.innerHTML = '<div class="alert alert-error">Fill in name, phone and PIN.</div>';
+    return;
+  }
+  if(!/^\d{4,6}$/.test(pin)){
+    alertBox.innerHTML = '<div class="alert alert-error">PIN must be 4–6 digits.</div>';
+    return;
+  }
+  const { data: existing } = await supabaseClient.from('students').select('student_id');
+  const id = nextStudentId((existing||[]).map(s=>s.student_id));
+  const email = studentEmail(id);
+
+  // Create the portal login on the auxiliary client so it never
+  // touches the staff member's own session on the main client.
+  const { data: signupData, error: signupError } = await supabaseAux.auth.signUp({
+    email, password: pin
+  });
+  await supabaseAux.auth.signOut();
+  if(signupError){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not create the portal login: '+esc(friendlyError(signupError))+'</div>';
+    return;
+  }
+  const newUserId = signupData.user ? signupData.user.id : null;
+  if(!newUserId){
+    alertBox.innerHTML = '<div class="alert alert-error">Account creation did not complete. Please try again, or contact your site administrator if this continues.</div>';
+    return;
+  }
+
+  const { error: insertError } = await supabaseClient.from('students').insert({
+    student_id: id, auth_user_id: newUserId, name, class_name: cls, phone
+  });
+  if(insertError){
+    alertBox.innerHTML = '<div class="alert alert-error">The login was created but the student record failed to save: '+esc(insertError.message)+'</div>';
+    return;
+  }
+
+  document.getElementById('stuName').value='';
+  document.getElementById('stuPhone').value='';
+  document.getElementById('stuPin').value='';
+  alertBox.innerHTML = '<div class="alert alert-good">Registered '+esc(name)+' as <strong>'+id+'</strong>. Share this ID and the PIN with the parent.</div>';
+  renderStudentsList();
+}
+async function renderStudentsList(){
+  const { data: students, error } = await supabaseClient.from('students').select('*').order('student_id');
+  const box = document.getElementById('studentsList');
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load students right now.</div>';
+    return;
+  }
+  if(!students || !students.length){
+    box.innerHTML = '<div class="empty-state">No students registered yet.</div>';
+    return;
+  }
+  const rows = students.map(s=>
+    '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.class_name)+'</td><td>'+esc(s.phone)+'</td>'+
+    '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
+  ).join('');
+  box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+async function deleteStudent(id){
+  if(!confirm('Remove this student record? Their results and payment history stay on file. Their portal login is deactivated separately by your site administrator.')) return;
+  const { error } = await supabaseClient.from('students').delete().eq('student_id', id);
+  if(error){
+    alert('Could not remove student: ' + error.message);
+    return;
+  }
+  renderStudentsList();
+  populateResultStudentSelect();
+}
+
+/* --- Results --- */
+async function populateResultStudentSelect(){
+  const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
+  const sel = document.getElementById('resStudent');
+  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
+  if(students && students.length) loadResultForm();
+  else document.getElementById('subjectRows').innerHTML = '<div class="empty-state">Register a student first.</div>';
+}
+function subjectRowHtml(name, score){
+  const g = gradeFor(score);
+  return '<div class="subject-row">' +
+    '<input type="text" placeholder="Subject" value="'+esc(name||'')+'" oninput="handleSubjectInput(this)">' +
+    '<input type="number" min="0" max="100" placeholder="Score" value="'+(score!=null?esc(score):'')+'" oninput="handleSubjectInput(this)">' +
+    '<span class="badge grade-chip '+gradeBadgeClass(g)+'">'+g+'</span>' +
+    '<button class="remove-btn" onclick="this.closest(\'.subject-row\').remove()" title="Remove subject">×</button>' +
+  '</div>';
+}
+function handleSubjectInput(el){
+  const row = el.closest('.subject-row');
+  const inputs = row.querySelectorAll('input');
+  const score = inputs[1].value;
+  const chip = row.querySelector('.grade-chip');
+  const g = gradeFor(score);
+  chip.textContent = g;
+  chip.className = 'badge grade-chip ' + gradeBadgeClass(g);
+}
+function addSubjectRow(name, score){
+  document.getElementById('subjectRows').insertAdjacentHTML('beforeend', subjectRowHtml(name, score));
+}
+async function loadResultForm(){
+  const studentId = document.getElementById('resStudent').value;
+  if(!studentId) return;
+  const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
+  const term = document.getElementById('resTermInput').value;
+  const { data: rec } = await supabaseClient
+    .from('results').select('*')
+    .eq('student_id', studentId).eq('session', session).eq('term', term).maybeSingle();
+  const container = document.getElementById('subjectRows');
+  container.innerHTML = '';
+  const defaultSubjects = ['Mathematics','English Language','Basic Science'];
+  if(rec && rec.subjects && rec.subjects.length){
+    rec.subjects.forEach(s=>addSubjectRow(s.name, s.score));
+  }else{
+    defaultSubjects.forEach(s=>addSubjectRow(s, ''));
+  }
+  document.getElementById('resRemarks').value = (rec && rec.remarks) ? rec.remarks : '';
+}
+async function saveResult(){
+  const alertBox = document.getElementById('resultAlert');
+  alertBox.innerHTML = '';
+  const studentId = document.getElementById('resStudent').value;
+  if(!studentId){
+    alertBox.innerHTML = '<div class="alert alert-error">Register a student first.</div>';
+    return;
+  }
+  const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
+  const term = document.getElementById('resTermInput').value;
+  const rows = document.querySelectorAll('#subjectRows .subject-row');
+  const subjects = [];
+  rows.forEach(r=>{
+    const inputs = r.querySelectorAll('input');
+    const name = inputs[0].value.trim();
+    const score = inputs[1].value;
+    if(name && score!==''){
+      subjects.push({name, score:Number(score), grade:gradeFor(score)});
+    }
+  });
+  if(!subjects.length){
+    alertBox.innerHTML = '<div class="alert alert-error">Add at least one subject with a score.</div>';
+    return;
+  }
+  const remarks = document.getElementById('resRemarks').value.trim();
+  const { error } = await supabaseClient.from('results').upsert({
+    student_id: studentId, session, term, subjects, remarks, updated_at: new Date().toISOString()
+  });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
+  alertBox.innerHTML = '<div class="alert alert-good">Result saved for '+esc(studentId)+' — '+esc(session)+', '+esc(term)+'.</div>';
+}
+
+/* --- Fees --- */
+async function saveFee(){
+  const alertBox = document.getElementById('feesAlert');
+  const cls = document.getElementById('feeClass').value;
+  const amount = Number(document.getElementById('feeAmount').value);
+  if(!amount || amount<0){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
+    return;
+  }
+  const { error } = await supabaseClient.from('fees').upsert({ class_name: cls, amount });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
+  document.getElementById('feeAmount').value = '';
+  alertBox.innerHTML = '<div class="alert alert-good">Fee for '+esc(cls)+' set to '+money(amount)+' per term.</div>';
+  renderFeesList();
+}
+async function renderFeesList(){
+  const { data: fees, error } = await supabaseClient.from('fees').select('*').order('class_name');
+  const box = document.getElementById('feesList');
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load fees right now.</div>';
+    return;
+  }
+  if(!fees || !fees.length){
+    box.innerHTML = '<div class="empty-state">No fee amounts set yet.</div>';
+    return;
+  }
+  const rows = fees.map(f=>'<tr><td>'+esc(f.class_name)+'</td><td>'+money(f.amount)+' / term</td></tr>').join('');
+  box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Class</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* --- Payments (recorded by staff after receiving fees) --- */
+async function populatePayStudentSelect(){
+  const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
+  const sel = document.getElementById('payStudent');
+  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
+}
+async function recordPayment(){
+  const alertBox = document.getElementById('recordPayAlert');
+  alertBox.innerHTML = '';
+  const studentId = document.getElementById('payStudent').value;
+  const session = document.getElementById('paySessionInput').value.trim() || '2025/2026';
+  const term = document.getElementById('payTermInput').value;
+  const amount = Number(document.getElementById('payAmountInput').value);
+  if(!studentId){
+    alertBox.innerHTML = '<div class="alert alert-error">Register a student first.</div>';
+    return;
+  }
+  if(!amount || amount<=0){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
+    return;
+  }
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const ref = 'MAF' + Date.now().toString().slice(-8);
+  const { error } = await supabaseClient.from('payments').insert({
+    id: ref, student_id: studentId, session, term, amount,
+    paid_on: new Date().toISOString().slice(0,10),
+    recorded_by: userData && userData.user ? userData.user.id : null
+  });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
+  document.getElementById('payAmountInput').value = '';
+  alertBox.innerHTML = '<div class="alert alert-good">Payment of '+money(amount)+' recorded for '+esc(studentId)+'. Reference: '+ref+'.</div>';
+  renderPaymentsLog();
+}
+async function renderPaymentsLog(){
+  const { data: payments, error } = await supabaseClient
+    .from('payments').select('*').order('paid_on', {ascending:false});
+  const box = document.getElementById('paymentsLog');
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load payments right now.</div>';
+    return;
+  }
+  if(!payments || !payments.length){
+    box.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
+    return;
+  }
+  const { data: students } = await supabaseClient.from('students').select('student_id,name');
+  const nameFor = id => ((students||[]).find(s=>s.student_id===id)||{}).name || '—';
+  const rows = payments.map(p=>
+    '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.student_id)+'</td><td>'+esc(nameFor(p.student_id))+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
+  ).join('');
+  box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Student ID</th><th>Name</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+/* init */
+refreshPortalSelectors();
+
+/* If a staff member is already signed in (session restored from a
+   previous visit), skip straight to the admin dashboard. */
+(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+  if(data && data.session){
+    const { data: staffRow } = await supabaseClient
+      .from('staff').select('user_id').eq('user_id', data.session.user.id).maybeSingle();
+    if(staffRow){
+      adminState.loggedIn = true;
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminDash').style.display = '';
+      adminTab('students');
+    }
+  }
+})();
 </script>
 
 </body>
