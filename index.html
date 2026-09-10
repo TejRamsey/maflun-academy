@@ -805,15 +805,19 @@
       <div id="adminLogin" class="login-shell">
         <div class="panel">
           <h3>Staff log in</h3>
-          <p class="hint">Enter the staff access code.</p>
+          <p class="hint">Log in with the staff account created for you in Supabase.</p>
           <div id="adminLoginAlert"></div>
           <div class="field">
-            <label for="adminCode">Access code</label>
-            <input id="adminCode" type="password" placeholder="Staff access code">
+            <label for="adminEmail">Email</label>
+            <input id="adminEmail" type="email" placeholder="you@maflunacademy.com" autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password">
           </div>
           <button class="btn-gold" style="width:100%" onclick="adminLogin()">Log in</button>
           <div class="note-box" style="margin-top:20px">
-            Default demo code: <strong>MAFLUN-STAFF</strong>. Change <code>ADMIN_CODE</code> in the page source before real use — see the security note at the bottom of this panel once you're logged in.
+            Staff accounts are created by whoever manages the Supabase project (Authentication → Add user), then added to the <code>staff</code> table — see <code>setup.sql</code>. There's no code hidden in this page to change; access is checked by the database itself.
           </div>
         </div>
       </div>
@@ -996,7 +1000,7 @@
         </div>
 
         <div class="note-box" style="margin-top:8px">
-          <strong>Security note for whoever maintains this site:</strong> the staff access code and all portal PINs in this demo are checked in the page's own JavaScript. That's fine for trying the workflow out, but it is not a secure login system — anyone who inspects the page could read the code or reach the stored data. Before using this with real pupil records, move PIN checks and student data to a proper backend with real authentication.
+          <strong>How access is protected now:</strong> staff log in with a real account (Supabase Authentication), and parents log in with their Student ID and PIN, which is also a real account under the hood — nothing is checked in this page's own code anymore. Postgres enforces who can see what: a parent's login can only ever read their own child's results, fees and payments, and only staff accounts listed in the <code>staff</code> table can read or write everyone's records. Removing a student here deletes their record, but not their login account itself, since deleting accounts requires a private key that must never sit inside a public webpage — that part is a five-minute job for whoever manages the Supabase project, from the dashboard.
         </div>
       </div>
 
@@ -1040,38 +1044,42 @@ const mobileMenu = document.getElementById('mobileMenu');
 menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
 mobileMenu.querySelectorAll('a,button').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
 
-/* ---------------- Change this before real use ---------------- */
-const ADMIN_CODE = "MAFLUN-STAFF";
-/* ---------------------------------------------------------------
-   IMPORTANT: this is a client-side demo gate only. See the security
-   note in the admin panel and the payments note in the portal.
------------------------------------------------------------------- */
-
 /* ================= Supabase backend config =================
    1. Create a free project at https://supabase.com
-   2. Run the SQL from setup.sql (provided alongside this file) in
-      the Supabase SQL Editor to create the storage table.
-   3. Go to Project Settings -> API and copy your Project URL and
-      "anon public" key into the two lines below.
-   4. Save, re-upload to GitHub, Vercel redeploys automatically.
-
-   NOTE: the anon key is meant to be public/visible in page source —
-   that's normal for Supabase. What keeps data safe (or not) is the
-   Row Level Security policy on the table, set up in setup.sql. The
-   starter policy allows anyone with this page to read and write —
-   fine for a small-scale demo, but read the note at the bottom of
-   setup.sql before trusting it with real records.
+   2. Run setup.sql in the Supabase SQL Editor — it creates the
+      students / results / fees / payments / staff tables and the
+      access rules (Row Level Security) that protect them.
+   3. In Supabase: Authentication -> Providers -> Email -> turn OFF
+      "Confirm email". This lets a new student login work right away
+      instead of waiting on a confirmation email that has nowhere
+      real to go.
+   4. Create at least one staff account: Authentication -> Add user
+      (a real email + password), then run the insert shown at the
+      bottom of setup.sql to mark that account as staff.
+   5. Project Settings -> API gives you the Project URL and the
+      "anon public" key used below. The anon key is meant to be
+      public — Postgres Row Level Security (from setup.sql) is what
+      actually keeps everyone's data separated, not this key.
 ================================================================= */
 const SUPABASE_URL = "https://sazlwzwbewxdnuutixbd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhemx3endiZXd4ZG51dXRpeGJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5ODU5ODgsImV4cCI6MjEwNDU2MTk4OH0.CranV-gRK8u8nhttit-hn26XgHAh2OYOARAd6Bwf_7w";
 
-let supabaseClient = null;
-let backendReady = false;
-if(SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20){
-  try{
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    backendReady = true;
-  }catch(e){ console.error('Supabase init failed', e); }
+// Main client: holds whichever session is active (staff or parent).
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: 'sb-maflun-main', persistSession: true, autoRefreshToken: true }
+});
+// Auxiliary client, used only for the instant when a new student
+// account is created, so that doesn't disturb the staff member's
+// own logged-in session in the main client above.
+const supabaseAux = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: 'sb-maflun-aux', persistSession: false, autoRefreshToken: false }
+});
+
+/* Student portal logins are real Supabase accounts under the hood,
+   addressed by a synthetic email built from the Student ID, so
+   parents never need to see or type an email address. */
+function studentEmail(id){
+  return id.trim().toLowerCase() + '@portal.maflunacademy.local';
 }
 
 /* ============== Page routing ============== */
@@ -1093,59 +1101,11 @@ function goHomeAnchor(e, id){
   return false;
 }
 
-/* ============== Storage helpers ==============
-   Uses Supabase when SUPABASE_URL/KEY above are filled in (this is
-   what makes data persist once the site is live on your own domain).
-   Falls back to Claude's built-in artifact storage otherwise, so the
-   site still works while you're previewing it here. */
-async function getData(key, fallback){
-  if(backendReady){
-    try{
-      const { data, error } = await supabaseClient
-        .from('kv_store').select('value').eq('key', key).maybeSingle();
-      if(error) throw error;
-      return data ? data.value : fallback;
-    }catch(e){
-      console.error('Supabase read error', e);
-      return fallback;
-    }
-  }
-  try{
-    const r = await window.storage.get(key, true);
-    return r ? JSON.parse(r.value) : fallback;
-  }catch(e){
-    return fallback;
-  }
-}
-async function setData(key, value){
-  if(backendReady){
-    try{
-      const { error } = await supabaseClient
-        .from('kv_store')
-        .upsert({ key, value, updated_at: new Date().toISOString() });
-      if(error) throw error;
-      return;
-    }catch(e){
-      console.error('Supabase write error', e);
-      return;
-    }
-  }
-  try{
-    await window.storage.set(key, JSON.stringify(value), true);
-  }catch(e){
-    console.error('storage error', e);
-  }
-}
-
-/* students: [{id,name,class,phone,pin}]
-   results: { "STUID__SESSION__TERM": {subjects:[{name,score,grade}], remarks} }
-   fees: { "Class": amountPerTerm }
-   payments: [{id,studentId,session,term,amount,date}] */
-
-function nextStudentId(students){
+/* ============== Small helpers ============== */
+function nextStudentId(existingIds){
   let max = 0;
-  students.forEach(s=>{
-    const m = /MAF-(\d+)/.exec(s.id);
+  existingIds.forEach(id=>{
+    const m = /MAF-(\d+)/.exec(id);
     if(m) max = Math.max(max, parseInt(m[1],10));
   });
   return 'MAF-' + String(max+1).padStart(4,'0');
@@ -1159,9 +1119,11 @@ function gradeFor(score){
   if(score>=45) return 'D';
   return 'F';
 }
+function gradeBadgeClass(g){
+  return (g==='A'||g==='B') ? 'badge-good' : (g==='C'||g==='D') ? 'badge-warn' : 'badge-bad';
+}
 function gradeBadge(g){
-  const cls = (g==='A'||g==='B') ? 'badge-good' : (g==='C'||g==='D') ? 'badge-warn' : 'badge-bad';
-  return '<span class="badge '+cls+'">'+g+'</span>';
+  return '<span class="badge '+gradeBadgeClass(g)+'">'+g+'</span>';
 }
 function money(n){
   n = Number(n)||0;
@@ -1170,8 +1132,15 @@ function money(n){
 function esc(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function friendlyError(error){
+  if(!error) return 'Something went wrong. Please try again.';
+  const msg = error.message || String(error);
+  if(/Invalid login credentials/i.test(msg)) return 'That ID/email and password don\u2019t match our records.';
+  if(/Email not confirmed/i.test(msg)) return 'This account needs email confirmation turned off in Supabase — see the setup note.';
+  return msg;
+}
 
-/* ============== PORTAL ============== */
+/* ============== PORTAL (student / parent) ============== */
 let portalState = { loggedIn:false, student:null };
 
 async function portalLogin(){
@@ -1183,27 +1152,36 @@ async function portalLogin(){
     alertBox.innerHTML = '<div class="alert alert-error">Enter both Student ID and PIN.</div>';
     return;
   }
-  const students = await getData('students', []);
-  const found = students.find(s => s.id.toLowerCase()===id.toLowerCase() && String(s.pin)===String(pin));
-  if(!found){
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: studentEmail(id), password: pin
+  });
+  if(error || !data.user){
     alertBox.innerHTML = '<div class="alert alert-error">We could not match that Student ID and PIN. Check with the school office.</div>';
     return;
   }
-  portalState = { loggedIn:true, student:found };
+  const { data: srow, error: serr } = await supabaseClient
+    .from('students').select('*').eq('auth_user_id', data.user.id).maybeSingle();
+  if(serr || !srow){
+    alertBox.innerHTML = '<div class="alert alert-error">Login worked, but no student record is linked to it. Contact the school office.</div>';
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  portalState = { loggedIn:true, student:srow };
   document.getElementById('portalLogin').style.display = 'none';
   document.getElementById('portalDash').style.display = '';
-  document.getElementById('pdId').textContent = found.id;
-  document.getElementById('pdName').textContent = found.name;
-  document.getElementById('pdClass').textContent = found.class;
+  document.getElementById('pdId').textContent = srow.student_id;
+  document.getElementById('pdName').textContent = srow.name;
+  document.getElementById('pdClass').textContent = srow.class_name;
+  document.getElementById('portalId').value='';
+  document.getElementById('portalPin').value='';
   await refreshPortalSelectors();
   portalTab('results');
 }
-function portalLogout(){
+async function portalLogout(){
+  await supabaseClient.auth.signOut();
   portalState = { loggedIn:false, student:null };
   document.getElementById('portalLogin').style.display = '';
   document.getElementById('portalDash').style.display = 'none';
-  document.getElementById('portalId').value='';
-  document.getElementById('portalPin').value='';
   document.getElementById('portalLoginAlert').innerHTML='';
 }
 function portalTab(tab){
@@ -1233,10 +1211,15 @@ async function renderPortalResults(){
   if(!portalState.loggedIn) return;
   const session = document.getElementById('resSession').value;
   const term = document.getElementById('resTerm').value;
-  const results = await getData('results', {});
-  const key = portalState.student.id+'__'+session+'__'+term;
-  const rec = results[key];
   const body = document.getElementById('resultsBody');
+  const { data: rec, error } = await supabaseClient
+    .from('results').select('*')
+    .eq('student_id', portalState.student.student_id)
+    .eq('session', session).eq('term', term).maybeSingle();
+  if(error){
+    body.innerHTML = '<div class="empty-state">Could not load results right now.</div>';
+    return;
+  }
   if(!rec || !rec.subjects || !rec.subjects.length){
     body.innerHTML = '<div class="empty-state">No results have been uploaded for this term yet.</div>';
     return;
@@ -1251,54 +1234,72 @@ async function renderPortalResults(){
 async function renderPortalFees(){
   if(!portalState.loggedIn) return;
   const st = portalState.student;
-  const fees = await getData('fees', {});
-  const payments = await getData('payments', []);
-  const due = fees[st.class] || 0;
-  const mine = payments.filter(p=>p.studentId===st.id);
-  const paidAllTime = mine.reduce((sum,p)=>sum+Number(p.amount||0),0);
-
   const session = document.getElementById('feeSession').value;
   const term = document.getElementById('feeTerm').value;
-  const paidThisTerm = mine
+
+  const { data: feeRow } = await supabaseClient
+    .from('fees').select('amount').eq('class_name', st.class_name).maybeSingle();
+  const due = feeRow ? Number(feeRow.amount) : 0;
+
+  const { data: mine } = await supabaseClient
+    .from('payments').select('*').eq('student_id', st.student_id).order('paid_on', {ascending:false});
+  const payments = mine || [];
+  const paidAllTime = payments.reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const paidThisTerm = payments
     .filter(p=>p.session===session && p.term===term)
     .reduce((sum,p)=>sum+Number(p.amount||0),0);
   const balance = Math.max(due - paidThisTerm, 0);
 
   const cards = document.getElementById('feeStatCards');
   cards.innerHTML =
-    '<div class="stat-card"><div class="label">Fee per term (' + esc(st.class) + ')</div><div class="value">'+money(due)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Fee per term (' + esc(st.class_name) + ')</div><div class="value">'+money(due)+'</div></div>' +
     '<div class="stat-card"><div class="label">Balance this term</div><div class="value">'+money(balance)+'</div></div>' +
     '<div class="stat-card"><div class="label">Total paid (all time)</div><div class="value">'+money(paidAllTime)+'</div></div>';
 
   const hist = document.getElementById('paymentHistory');
-  if(!mine.length){
+  if(!payments.length){
     hist.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
   }else{
-    const rows = mine.slice().reverse().map(p=>
-      '<tr><td>'+esc(p.date)+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
+    const rows = payments.map(p=>
+      '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
     ).join('');
     hist.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
 }
 
-
-/* ============== ADMIN ============== */
+/* ============== ADMIN (staff) ============== */
 let adminState = { loggedIn:false, tab:'students' };
 
-function adminLogin(){
-  const code = document.getElementById('adminCode').value.trim();
+async function adminLogin(){
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
   const alertBox = document.getElementById('adminLoginAlert');
-  if(code !== ADMIN_CODE){
-    alertBox.innerHTML = '<div class="alert alert-error">Incorrect access code.</div>';
+  alertBox.innerHTML = '';
+  if(!email || !password){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter your email and password.</div>';
+    return;
+  }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error || !data.user){
+    alertBox.innerHTML = '<div class="alert alert-error">'+esc(friendlyError(error))+'</div>';
+    return;
+  }
+  const { data: staffRow } = await supabaseClient
+    .from('staff').select('user_id').eq('user_id', data.user.id).maybeSingle();
+  if(!staffRow){
+    alertBox.innerHTML = '<div class="alert alert-error">This account is not registered as staff. Ask whoever manages Supabase to add it to the staff table.</div>';
+    await supabaseClient.auth.signOut();
     return;
   }
   adminState.loggedIn = true;
   document.getElementById('adminLogin').style.display = 'none';
   document.getElementById('adminDash').style.display = '';
-  document.getElementById('adminCode').value = '';
+  document.getElementById('adminEmail').value = '';
+  document.getElementById('adminPassword').value = '';
   adminTab('students');
 }
-function adminLogout(){
+async function adminLogout(){
+  await supabaseClient.auth.signOut();
   adminState.loggedIn = false;
   document.getElementById('adminLogin').style.display = '';
   document.getElementById('adminDash').style.display = 'none';
@@ -1311,7 +1312,7 @@ function adminTab(tab){
     document.getElementById('apane-'+t).style.display = (t===tab) ? '' : 'none';
   });
   if(tab==='students') renderStudentsList();
-  if(tab==='results') { populateResultStudentSelect(); }
+  if(tab==='results') populateResultStudentSelect();
   if(tab==='fees') renderFeesList();
   if(tab==='payments') { populatePayStudentSelect(); renderPaymentsLog(); }
 }
@@ -1332,10 +1333,34 @@ async function registerStudent(){
     alertBox.innerHTML = '<div class="alert alert-error">PIN must be 4–6 digits.</div>';
     return;
   }
-  const students = await getData('students', []);
-  const id = nextStudentId(students);
-  students.push({id, name, class:cls, phone, pin});
-  await setData('students', students);
+  const { data: existing } = await supabaseClient.from('students').select('student_id');
+  const id = nextStudentId((existing||[]).map(s=>s.student_id));
+  const email = studentEmail(id);
+
+  // Create the portal login on the auxiliary client so it never
+  // touches the staff member's own session on the main client.
+  const { data: signupData, error: signupError } = await supabaseAux.auth.signUp({
+    email, password: pin
+  });
+  await supabaseAux.auth.signOut();
+  if(signupError){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not create the portal login: '+esc(friendlyError(signupError))+'</div>';
+    return;
+  }
+  const newUserId = signupData.user ? signupData.user.id : null;
+  if(!newUserId){
+    alertBox.innerHTML = '<div class="alert alert-error">Account creation did not complete. Check that "Confirm email" is turned off in Supabase (see setup note).</div>';
+    return;
+  }
+
+  const { error: insertError } = await supabaseClient.from('students').insert({
+    student_id: id, auth_user_id: newUserId, name, class_name: cls, phone
+  });
+  if(insertError){
+    alertBox.innerHTML = '<div class="alert alert-error">The login was created but the student record failed to save: '+esc(insertError.message)+'</div>';
+    return;
+  }
+
   document.getElementById('stuName').value='';
   document.getElementById('stuPhone').value='';
   document.getElementById('stuPin').value='';
@@ -1343,33 +1368,39 @@ async function registerStudent(){
   renderStudentsList();
 }
 async function renderStudentsList(){
-  const students = await getData('students', []);
+  const { data: students, error } = await supabaseClient.from('students').select('*').order('student_id');
   const box = document.getElementById('studentsList');
-  if(!students.length){
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load students right now.</div>';
+    return;
+  }
+  if(!students || !students.length){
     box.innerHTML = '<div class="empty-state">No students registered yet.</div>';
     return;
   }
   const rows = students.map(s=>
-    '<tr><td>'+esc(s.id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.class)+'</td><td>'+esc(s.phone)+'</td>'+
-    '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.id+'\')">Remove</button></div></td></tr>'
+    '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.class_name)+'</td><td>'+esc(s.phone)+'</td>'+
+    '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
   ).join('');
   box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 async function deleteStudent(id){
-  if(!confirm('Remove this student record? Their results and payment history stay on file.')) return;
-  let students = await getData('students', []);
-  students = students.filter(s=>s.id!==id);
-  await setData('students', students);
+  if(!confirm('Remove this student record? Their results and payment history stay on file. Their portal login account is not deleted (that needs the Supabase dashboard).')) return;
+  const { error } = await supabaseClient.from('students').delete().eq('student_id', id);
+  if(error){
+    alert('Could not remove student: ' + error.message);
+    return;
+  }
   renderStudentsList();
   populateResultStudentSelect();
 }
 
 /* --- Results --- */
 async function populateResultStudentSelect(){
-  const students = await getData('students', []);
+  const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
   const sel = document.getElementById('resStudent');
-  sel.innerHTML = students.map(s=>'<option value="'+s.id+'">'+esc(s.id)+' — '+esc(s.name)+'</option>').join('');
-  if(students.length) loadResultForm();
+  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
+  if(students && students.length) loadResultForm();
   else document.getElementById('subjectRows').innerHTML = '<div class="empty-state">Register a student first.</div>';
 }
 function subjectRowHtml(name, score){
@@ -1377,7 +1408,7 @@ function subjectRowHtml(name, score){
   return '<div class="subject-row">' +
     '<input type="text" placeholder="Subject" value="'+esc(name||'')+'" oninput="handleSubjectInput(this)">' +
     '<input type="number" min="0" max="100" placeholder="Score" value="'+(score!=null?esc(score):'')+'" oninput="handleSubjectInput(this)">' +
-    '<span class="badge grade-chip '+((g==='A'||g==='B')?'badge-good':(g==='C'||g==='D')?'badge-warn':'badge-bad')+'">'+g+'</span>' +
+    '<span class="badge grade-chip '+gradeBadgeClass(g)+'">'+g+'</span>' +
     '<button class="remove-btn" onclick="this.closest(\'.subject-row\').remove()" title="Remove subject">×</button>' +
   '</div>';
 }
@@ -1388,17 +1419,19 @@ function handleSubjectInput(el){
   const chip = row.querySelector('.grade-chip');
   const g = gradeFor(score);
   chip.textContent = g;
-  chip.className = 'badge grade-chip ' + ((g==='A'||g==='B')?'badge-good':(g==='C'||g==='D')?'badge-warn':'badge-bad');
+  chip.className = 'badge grade-chip ' + gradeBadgeClass(g);
 }
 function addSubjectRow(name, score){
   document.getElementById('subjectRows').insertAdjacentHTML('beforeend', subjectRowHtml(name, score));
 }
 async function loadResultForm(){
   const studentId = document.getElementById('resStudent').value;
+  if(!studentId) return;
   const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
   const term = document.getElementById('resTermInput').value;
-  const results = await getData('results', {});
-  const rec = results[studentId+'__'+session+'__'+term];
+  const { data: rec } = await supabaseClient
+    .from('results').select('*')
+    .eq('student_id', studentId).eq('session', session).eq('term', term).maybeSingle();
   const container = document.getElementById('subjectRows');
   container.innerHTML = '';
   const defaultSubjects = ['Mathematics','English Language','Basic Science'];
@@ -1434,9 +1467,13 @@ async function saveResult(){
     return;
   }
   const remarks = document.getElementById('resRemarks').value.trim();
-  const results = await getData('results', {});
-  results[studentId+'__'+session+'__'+term] = {subjects, remarks, updatedAt: new Date().toISOString()};
-  await setData('results', results);
+  const { error } = await supabaseClient.from('results').upsert({
+    student_id: studentId, session, term, subjects, remarks, updated_at: new Date().toISOString()
+  });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
   alertBox.innerHTML = '<div class="alert alert-good">Result saved for '+esc(studentId)+' — '+esc(session)+', '+esc(term)+'.</div>';
 }
 
@@ -1449,30 +1486,35 @@ async function saveFee(){
     alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
     return;
   }
-  const fees = await getData('fees', {});
-  fees[cls] = amount;
-  await setData('fees', fees);
+  const { error } = await supabaseClient.from('fees').upsert({ class_name: cls, amount });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
   document.getElementById('feeAmount').value = '';
   alertBox.innerHTML = '<div class="alert alert-good">Fee for '+esc(cls)+' set to '+money(amount)+' per term.</div>';
   renderFeesList();
 }
 async function renderFeesList(){
-  const fees = await getData('fees', {});
+  const { data: fees, error } = await supabaseClient.from('fees').select('*').order('class_name');
   const box = document.getElementById('feesList');
-  const entries = Object.entries(fees);
-  if(!entries.length){
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load fees right now.</div>';
+    return;
+  }
+  if(!fees || !fees.length){
     box.innerHTML = '<div class="empty-state">No fee amounts set yet.</div>';
     return;
   }
-  const rows = entries.map(([cls,amt])=>'<tr><td>'+esc(cls)+'</td><td>'+money(amt)+' / term</td></tr>').join('');
+  const rows = fees.map(f=>'<tr><td>'+esc(f.class_name)+'</td><td>'+money(f.amount)+' / term</td></tr>').join('');
   box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Class</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
-/* --- Payments (recorded by staff) --- */
+/* --- Payments (recorded by staff after receiving fees) --- */
 async function populatePayStudentSelect(){
-  const students = await getData('students', []);
+  const { data: students } = await supabaseClient.from('students').select('*').order('student_id');
   const sel = document.getElementById('payStudent');
-  sel.innerHTML = students.map(s=>'<option value="'+s.id+'">'+esc(s.id)+' — '+esc(s.name)+'</option>').join('');
+  sel.innerHTML = (students||[]).map(s=>'<option value="'+s.student_id+'">'+esc(s.student_id)+' — '+esc(s.name)+'</option>').join('');
 }
 async function recordPayment(){
   const alertBox = document.getElementById('recordPayAlert');
@@ -1489,34 +1531,59 @@ async function recordPayment(){
     alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
     return;
   }
-  const payments = await getData('payments', []);
+  const { data: userData } = await supabaseClient.auth.getUser();
   const ref = 'MAF' + Date.now().toString().slice(-8);
-  payments.push({
-    id: ref, studentId, session, term, amount,
-    date: new Date().toLocaleDateString('en-GB')
+  const { error } = await supabaseClient.from('payments').insert({
+    id: ref, student_id: studentId, session, term, amount,
+    paid_on: new Date().toISOString().slice(0,10),
+    recorded_by: userData && userData.user ? userData.user.id : null
   });
-  await setData('payments', payments);
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not save: '+esc(error.message)+'</div>';
+    return;
+  }
   document.getElementById('payAmountInput').value = '';
   alertBox.innerHTML = '<div class="alert alert-good">Payment of '+money(amount)+' recorded for '+esc(studentId)+'. Reference: '+ref+'.</div>';
   renderPaymentsLog();
 }
 async function renderPaymentsLog(){
-  const payments = await getData('payments', []);
-  const students = await getData('students', []);
+  const { data: payments, error } = await supabaseClient
+    .from('payments').select('*').order('paid_on', {ascending:false});
   const box = document.getElementById('paymentsLog');
-  if(!payments.length){
+  if(error){
+    box.innerHTML = '<div class="empty-state">Could not load payments right now.</div>';
+    return;
+  }
+  if(!payments || !payments.length){
     box.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
     return;
   }
-  const nameFor = id => (students.find(s=>s.id===id)||{}).name || '—';
-  const rows = payments.slice().reverse().map(p=>
-    '<tr><td>'+esc(p.date)+'</td><td>'+esc(p.studentId)+'</td><td>'+esc(nameFor(p.studentId))+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
+  const { data: students } = await supabaseClient.from('students').select('student_id,name');
+  const nameFor = id => ((students||[]).find(s=>s.student_id===id)||{}).name || '—';
+  const rows = payments.map(p=>
+    '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.student_id)+'</td><td>'+esc(nameFor(p.student_id))+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
   ).join('');
   box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Student ID</th><th>Name</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 /* init */
 refreshPortalSelectors();
+
+/* If a staff member is already signed in (session restored from a
+   previous visit), skip straight to the admin dashboard. */
+(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+  if(data && data.session){
+    const { data: staffRow } = await supabaseClient
+      .from('staff').select('user_id').eq('user_id', data.session.user.id).maybeSingle();
+    if(staffRow){
+      adminState.loggedIn = true;
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminDash').style.display = '';
+      adminTab('students');
+    }
+  }
+})();
 </script>
 
 </body>
