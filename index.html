@@ -441,6 +441,22 @@
   .alert-error{ background:rgba(180,69,60,0.08); color:var(--bad); border-color:rgba(180,69,60,0.25); }
   .alert-good{ background:rgba(63,122,79,0.08); color:var(--good); border-color:rgba(63,122,79,0.25); }
 
+  .idle-banner{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(120%);
+    background:var(--ink); color:var(--paper);
+    padding:16px 22px; border-radius:10px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    box-shadow:0 24px 48px -20px rgba(36,31,66,0.5);
+    z-index:200; max-width:min(92vw, 460px);
+    transition:transform .3s ease;
+  }
+  .idle-banner.show{ transform:translateX(-50%) translateY(0); }
+  .idle-banner p{ margin:0; font-size:14px; color:#D8D3EA; }
+  .idle-banner button{
+    background:var(--gold); color:var(--ink); border:none; padding:9px 16px;
+    border-radius:2px; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+
   .tabbar{ display:flex; gap:8px; border-bottom:1px solid var(--line); margin-bottom:32px; flex-wrap:wrap; }
   .tabbar button{
     background:none; border:none; padding:12px 4px; margin-right:22px; font-size:15px;
@@ -1079,6 +1095,11 @@
   </section>
 </div><!-- /page-admin -->
 
+<div id="idleBanner" class="idle-banner">
+  <p id="idleBannerText">You'll be logged out soon due to inactivity.</p>
+  <button onclick="stayLoggedIn()">Stay logged in</button>
+</div>
+
 <footer>
   <div class="wrap">
     <div class="footer-top">
@@ -1158,7 +1179,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Main client: holds whichever session is active (staff or parent).
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { storageKey: 'sb-maflun-main', persistSession: true, autoRefreshToken: true }
+  auth: { storageKey: 'sb-maflun-main', persistSession: false, autoRefreshToken: true }
 });
 // Auxiliary client, used only for the instant when a new student
 // account is created, so that doesn't disturb the staff member's
@@ -1268,13 +1289,16 @@ async function portalLogin(){
   document.getElementById('portalPin').value='';
   await refreshPortalSelectors();
   portalTab('results');
+  resetIdleTimer();
 }
-async function portalLogout(){
+async function portalLogout(showReason){
   await supabaseClient.auth.signOut();
   portalState = { loggedIn:false, student:null };
   document.getElementById('portalLogin').style.display = '';
   document.getElementById('portalDash').style.display = 'none';
-  document.getElementById('portalLoginAlert').innerHTML='';
+  document.getElementById('portalLoginAlert').innerHTML = showReason
+    ? '<div class="alert alert-error">You were logged out due to inactivity, to keep this device safe.</div>' : '';
+  clearIdleTimers();
 }
 function portalTab(tab){
   document.getElementById('ptab-results').classList.toggle('active', tab==='results');
@@ -1389,13 +1413,16 @@ async function adminLogin(){
   document.getElementById('adminEmail').value = '';
   document.getElementById('adminPassword').value = '';
   adminTab('students');
+  resetIdleTimer();
 }
-async function adminLogout(){
+async function adminLogout(showReason){
   await supabaseClient.auth.signOut();
   adminState.loggedIn = false;
   document.getElementById('adminLogin').style.display = '';
   document.getElementById('adminDash').style.display = 'none';
-  document.getElementById('adminLoginAlert').innerHTML = '';
+  document.getElementById('adminLoginAlert').innerHTML = showReason
+    ? '<div class="alert alert-error">You were logged out due to inactivity, to keep this device safe.</div>' : '';
+  clearIdleTimers();
 }
 function adminTab(tab){
   adminState.tab = tab;
@@ -1749,21 +1776,48 @@ async function renderPaymentsLog(){
 /* init */
 refreshPortalSelectors();
 
-/* If a staff member is already signed in (session restored from a
-   previous visit), skip straight to the admin dashboard. */
-(async () => {
-  const { data } = await supabaseClient.auth.getSession();
-  if(data && data.session){
-    const { data: staffRow } = await supabaseClient
-      .from('staff').select('user_id').eq('user_id', data.session.user.id).maybeSingle();
-    if(staffRow){
-      adminState.loggedIn = true;
-      document.getElementById('adminLogin').style.display = 'none';
-      document.getElementById('adminDash').style.display = '';
-      adminTab('students');
-    }
-  }
-})();
+/* ============== Auto sign-out ==============
+   Logins don't persist across a closed browser (see persistSession
+   above), and — on top of that — anyone left signed in gets signed
+   out automatically after a period with no activity, so a shared or
+   public computer doesn't stay logged into a student's or staff
+   member's account after they walk away. */
+const IDLE_LIMIT_MS = 15 * 60 * 1000;   // sign out after 15 minutes of no activity
+const IDLE_WARN_MS  = 60 * 1000;        // warn 1 minute before that
+let idleWarnTimer = null, idleLogoutTimer = null;
+
+function clearIdleTimers(){
+  clearTimeout(idleWarnTimer);
+  clearTimeout(idleLogoutTimer);
+  document.getElementById('idleBanner').classList.remove('show');
+}
+function resetIdleTimer(){
+  clearTimeout(idleWarnTimer);
+  clearTimeout(idleLogoutTimer);
+  document.getElementById('idleBanner').classList.remove('show');
+  if(!adminState.loggedIn && !portalState.loggedIn) return;
+  idleWarnTimer = setTimeout(showIdleWarning, IDLE_LIMIT_MS - IDLE_WARN_MS);
+  idleLogoutTimer = setTimeout(forceIdleLogout, IDLE_LIMIT_MS);
+}
+function showIdleWarning(){
+  document.getElementById('idleBannerText').textContent =
+    'You\u2019ll be logged out in a minute due to inactivity.';
+  document.getElementById('idleBanner').classList.add('show');
+}
+function stayLoggedIn(){
+  resetIdleTimer();
+}
+async function forceIdleLogout(){
+  document.getElementById('idleBanner').classList.remove('show');
+  if(adminState.loggedIn) await adminLogout(true);
+  else if(portalState.loggedIn) await portalLogout(true);
+}
+['mousemove','keydown','mousedown','touchstart','scroll'].forEach(evt=>{
+  window.addEventListener(evt, () => {
+    // Only bother resetting while someone is actually logged in.
+    if(adminState.loggedIn || portalState.loggedIn) resetIdleTimer();
+  }, { passive:true });
+});
 </script>
 
 </body>
