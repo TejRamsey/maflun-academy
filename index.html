@@ -8,23 +8,25 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <style>
   :root{
-    --ink:#241F42;
-    --ink-soft:#4A4370;
-    --brand:#8C82B8;
-    --brand-deep:#5B5290;
-    --gold:#C9A227;
-    --gold-soft:#D9BA5C;
-    --paper:#F8F6F1;
-    --paper-dim:#EFEBE1;
-    --line: rgba(36,31,66,0.14);
+    --ink:#201b3d;
+    --ink-soft:#716d80;
+    --brand:#8d83c0;
+    --brand-deep:#6f63a8;
+    --gold:#c9a227;
+    --gold-soft:#d9ba5c;
+    --paper:#f7f5ef;
+    --paper-dim:#efeadf;
+    --line: #e7e3dc;
     --line-on-dark: rgba(217,186,92,0.32);
-    --good:#3F7A4F;
-    --bad:#B4453C;
-    --max: 1120px;
+    --good:#21865b;
+    --bad:#b94a48;
+    --shadow: 0 18px 55px rgba(32,27,61,.10);
+    --max: 1160px;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -32,14 +34,14 @@
     margin:0;
     background:var(--paper);
     color:var(--ink);
-    font-family:'Work Sans', sans-serif;
+    font-family:'DM Sans', sans-serif;
     font-size:17px;
     line-height:1.6;
   }
   h1,h2,h3,.display{
-    font-family:'Fraunces', serif;
+    font-family:'Playfair Display', serif;
     font-weight:600;
-    line-height:1.05;
+    line-height:1.08;
     margin:0;
     color:var(--ink);
   }
@@ -48,705 +50,440 @@
   .wrap{max-width:var(--max); margin:0 auto; padding:0 32px;}
   @media (max-width:640px){ .wrap{padding:0 20px;} }
   button{ font-family:inherit; }
+  .hidden{ display:none !important; }
+
+  /* ---------- Buttons ---------- */
+  .btn{ border:0; border-radius:10px; padding:12px 20px; font-weight:700; font-size:14.5px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;
+    cursor:pointer; transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ box-shadow:0 12px 24px -12px rgba(32,27,61,0.45); }
+  .btn-gold{ background:var(--gold); color:var(--ink); }
+  .btn-gold:hover{ box-shadow:0 12px 24px -12px rgba(201,162,39,0.5); }
+  .btn-light{ background:#fff; border:1px solid var(--line); color:var(--ink); }
+  .btn-light:hover{ border-color:var(--brand); }
+  .btn-danger{ background:#fff1f0; color:var(--bad); border:1px solid #f0cecc; }
+  .btn-ghost{ background:none; color:var(--ink-soft); text-decoration:underline; text-decoration-color:var(--line);
+    border:none; cursor:pointer; font-size:14.5px; padding:6px 0; }
+  .btn-ghost:hover{ color:var(--ink); text-decoration-color:var(--gold); }
+  button:focus-visible, a:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
 
   /* ---------- Header ---------- */
-  header{
+  .site-header{
     position:sticky; top:0; z-index:50;
-    background:rgba(248,246,241,0.88);
-    backdrop-filter:saturate(160%) blur(10px);
-    -webkit-backdrop-filter:saturate(160%) blur(10px);
+    background:rgba(247,245,239,.94);
+    backdrop-filter:blur(12px);
     border-bottom:1px solid var(--line);
-    transition:box-shadow .25s ease, border-color .25s ease;
+    transition:box-shadow .2s ease;
   }
-  header.scrolled{
-    box-shadow:0 8px 24px -18px rgba(36,31,66,0.35);
-  }
-  .nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 0;
-  }
-  .brand{
-    display:flex; align-items:center; gap:12px;
-    text-decoration:none;
-    background:none; border:none; cursor:pointer; padding:0;
-  }
-  .crest-img{
-    width:52px; height:52px;
-    object-fit:contain;
-    flex-shrink:0;
-  }
-  .brand-name{
-    font-family:'Fraunces', serif; font-weight:600; font-size:19px;
-    letter-spacing:0.01em;
-  }
-  nav.links{display:flex; gap:28px; font-size:15px;}
-  nav.links a, nav.links button.linklike{
-    text-decoration:none; padding:4px 0; border-bottom:1px solid transparent;
-    transition:border-color .15s ease; background:none; border-top:none; border-left:none; border-right:none;
-    color:var(--ink); font-size:15px; cursor:pointer;
-  }
-  nav.links a:hover, nav.links button.linklike:hover{border-color:var(--gold);}
-  .nav-cta{
-    background:var(--ink); color:var(--paper); text-decoration:none;
-    padding:10px 20px; border-radius:10px; font-size:14px; font-weight:500;
-    border:1px solid var(--ink);
-    transition: background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
-    cursor:pointer;
-  }
-  .nav-cta:hover{ background:transparent; color:var(--ink); transform:translateY(-1px); box-shadow:0 6px 16px -8px rgba(36,31,66,0.4); }
-  .menu-btn{ display:none; background:none; border:none; cursor:pointer; padding:6px; }
-  .menu-btn span{ display:block; width:24px; height:2px; background:var(--ink); margin:5px 0; }
-
+  .site-header.scrolled{ box-shadow:0 12px 24px -20px rgba(32,27,61,0.3); }
+  .nav{ height:78px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+  .brand{ display:flex; align-items:center; gap:12px; text-decoration:none; background:none; border:none; cursor:pointer; padding:0; }
+  .brand img{ width:50px; height:50px; object-fit:contain; }
+  .brand strong{ font-family:'Playfair Display', serif; font-size:19px; }
+  .brand small{ display:block; color:var(--ink-soft); font-size:11px; font-family:'DM Sans',sans-serif; }
+  .navlinks{ display:flex; gap:26px; font-size:14px; align-items:center; }
+  .navlinks a, .navlinks button.linklike{ text-decoration:none; background:none; border:none; cursor:pointer;
+    font-size:14px; color:var(--ink); padding:0; }
+  .navlinks a:hover, .navlinks button.linklike:hover{ color:var(--brand-deep); }
+  .nav-actions{ display:flex; gap:10px; }
+  .menu-btn{ display:none; background:none; border:none; cursor:pointer; padding:6px; font-size:24px; }
+  .mobile-menu{ display:none; flex-direction:column; border-top:1px solid var(--line); }
+  .mobile-menu.open{ display:flex; }
+  .mobile-menu a, .mobile-menu button.linklike{ padding:16px 0; text-decoration:none; border-bottom:1px solid var(--line);
+    font-size:16px; background:none; border-left:none; border-right:none; border-top:none;
+    text-align:left; color:var(--ink); cursor:pointer; width:100%; }
   @media (max-width:860px){
-    nav.links{ display:none; }
-    .nav-cta{ display:none; }
+    .navlinks{ display:none; }
+    .nav-actions{ display:none; }
     .menu-btn{ display:block; }
-    .mobile-menu{
-      display:none; flex-direction:column; gap:0;
-      border-top:1px solid var(--line);
-    }
-    .mobile-menu.open{ display:flex; }
-    .mobile-menu a, .mobile-menu button.linklike{
-      padding:16px 0; text-decoration:none; border-bottom:1px solid var(--line);
-      font-size:16px; background:none; border-left:none; border-right:none; border-top:none;
-      text-align:left; color:var(--ink); cursor:pointer; width:100%;
-    }
   }
 
   /* ---------- Hero ---------- */
-  .hero{
-    background:
-      radial-gradient(ellipse 60% 55% at 82% 8%, rgba(140,130,184,0.35), transparent 60%),
-      radial-gradient(ellipse 55% 50% at 8% 95%, rgba(201,162,39,0.14), transparent 60%),
-      linear-gradient(160deg, #241F42 0%, #2C2650 55%, #241F42 100%);
-    color:var(--paper);
-    position:relative;
-    overflow:hidden;
-  }
-  .hero .wrap{
-    padding:88px 32px 80px;
-    display:grid;
-    grid-template-columns:1.1fr 0.9fr;
-    gap:56px;
-    align-items:center;
-  }
-  @media (max-width:860px){
-    .hero .wrap{ grid-template-columns:1fr; padding:56px 20px 48px; gap:40px; }
-  }
-  .eyebrow{
-    color:var(--gold-soft);
-    font-size:14px;
-    letter-spacing:0.03em;
-    margin-bottom:18px;
-  }
-  .hero h1{
-    font-size:clamp(38px, 5.4vw, 58px);
-    color:var(--paper);
-    max-width:11ch;
-  }
-  .hero-sub{
-    margin-top:22px;
-    max-width:44ch;
-    color:#D8D3EA;
-    font-size:17px;
-  }
-  .hero-actions{
-    margin-top:34px;
-    display:flex; gap:16px; flex-wrap:wrap;
-  }
-  .btn-gold{
-    background:var(--gold);
-    color:var(--ink);
-    text-decoration:none;
-    padding:14px 26px;
-    font-weight:600;
-    font-size:15px;
-    border-radius:10px;
-    border:1px solid var(--gold);
-    transition:opacity .15s ease, transform .15s ease, box-shadow .15s ease;
-    cursor:pointer;
-    display:inline-block;
-  }
-  .btn-gold:hover{ opacity:0.92; transform:translateY(-1px); box-shadow:0 10px 24px -10px rgba(201,162,39,0.55); }
-  .btn-gold:active{ transform:translateY(0); }
-  .btn-outline{
-    color:var(--paper);
-    text-decoration:none;
-    padding:14px 26px;
-    font-weight:500;
-    font-size:15px;
-    border-radius:10px;
-    border:1px solid var(--line-on-dark);
-    transition:border-color .15s ease, background .15s ease, transform .15s ease;
-    cursor:pointer;
-    background:none;
-    display:inline-block;
-  }
-  .btn-outline:hover{ border-color:var(--gold); background:rgba(217,186,92,0.06); transform:translateY(-1px); }
+  .hero{ background:linear-gradient(160deg,#201b3d 0%,#2a2452 55%,#201b3d 100%); color:#fff; overflow:hidden; position:relative; }
+  .hero::before{ content:''; position:absolute; top:-20%; right:-10%; width:60%; height:140%;
+    background:radial-gradient(ellipse, rgba(141,131,192,0.35), transparent 65%); pointer-events:none; }
+  .hero .wrap{ position:relative; min-height:600px; padding:78px 32px; display:grid; grid-template-columns:1.08fr .92fr; align-items:center; gap:50px; }
+  @media (max-width:860px){ .hero .wrap{ grid-template-columns:1fr; padding:56px 20px; min-height:0; } }
+  .eyebrow{ color:var(--gold-soft); font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .hero h1{ font-size:clamp(38px,5.3vw,60px); max-width:11ch; margin-top:14px; color:#fff; }
+  .hero p{ max-width:52ch; color:#d8d4e6; font-size:17px; margin:22px 0; }
+  .hero-buttons{ display:flex; gap:12px; flex-wrap:wrap; }
+  .hero-card{ justify-self:end; width:min(390px,100%); padding:30px; border:1px solid rgba(255,255,255,.13);
+    background:rgba(255,255,255,.06); border-radius:22px; backdrop-filter:blur(6px); }
+  @media (max-width:860px){ .hero-card{ justify-self:start; } }
+  .hero-card img{ width:130px; height:130px; object-fit:contain; margin:0 auto 20px; filter:drop-shadow(0 15px 25px rgba(0,0,0,.3)); }
+  .hero-card .mini{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mini div{ padding:14px; border:1px solid rgba(255,255,255,.12); border-radius:12px; }
+  .mini b{ display:block; font-size:17px; color:#fff; font-family:'Playfair Display',serif; }
+  .mini span{ font-size:12px; color:#bbb6cf; }
 
-  .btn-ink{
-    background:var(--ink); color:var(--paper); text-decoration:none;
-    padding:13px 24px; border-radius:10px; font-size:14.5px; font-weight:500;
-    border:1px solid var(--ink); cursor:pointer; display:inline-block;
-    transition:background .15s ease,color .15s ease, transform .15s ease;
-  }
-  .btn-ink:hover{ background:transparent; color:var(--ink); transform:translateY(-1px); }
-  .btn-ghost{
-    background:none; color:var(--ink-soft); text-decoration:underline;
-    text-decoration-color:var(--line); border:none; cursor:pointer;
-    font-size:14.5px; padding:6px 0;
-  }
-  .btn-ghost:hover{ color:var(--ink); text-decoration-color:var(--gold); }
-  .btn-danger{
-    background:none; color:var(--bad); border:1px solid rgba(180,69,60,0.35);
-    padding:8px 14px; border-radius:10px; font-size:13.5px; cursor:pointer;
-  }
-  .btn-danger:hover{ background:rgba(180,69,60,0.06); }
-
-  .hero-emblem{
-    display:flex; align-items:center; justify-content:center;
-  }
-  .emblem-ring{
-    width:min(300px, 78vw);
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
-    padding:18px;
-  }
-  .emblem-ring::before{
-    content:'';
-    position:absolute; inset:-10%;
-    background:radial-gradient(circle, rgba(217,186,92,0.28) 0%, rgba(217,186,92,0) 68%);
-    border-radius:50%;
-    z-index:0;
-  }
-  .emblem-ring img{
-    width:100%;
-    position:relative; z-index:1;
-    filter: drop-shadow(0 18px 40px rgba(0,0,0,0.35));
-  }
-
-  .hero-stats{
-    border-top:1px solid var(--line-on-dark);
-    margin-top:60px;
-    padding-top:32px;
-    display:flex;
-    gap:56px;
-    flex-wrap:wrap;
-  }
-  .stat-num{
-    font-family:'Fraunces', serif;
-    font-size:28px;
-    color:var(--gold-soft);
-  }
-  .stat-label{ font-size:14px; color:#B6AFD6; margin-top:4px; }
-
-  /* ---------- Section shell ---------- */
-  section{ padding:88px 0; }
-  @media (max-width:640px){ section{ padding:64px 0; } }
-  .section-head{
-    display:grid; grid-template-columns:0.5fr 1fr; gap:40px;
-    margin-bottom:52px;
-    align-items:start;
-  }
-  @media (max-width:760px){ .section-head{ grid-template-columns:1fr; gap:16px; } }
-  .section-num{
-    font-family:'Fraunces', serif; color:var(--brand-deep);
-    font-size:15px; padding-top:6px;
-  }
-  .section-head h2{ font-size:clamp(28px, 3.4vw, 38px); max-width:14ch; }
-  .section-head p{ margin-top:14px; max-width:52ch; color:var(--ink-soft); }
-
-  hr.rule{ border:none; border-top:1px solid var(--line); margin:0; }
-
-  /* ---------- About ---------- */
-  .about-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:64px;
-  }
-  @media (max-width:760px){ .about-grid{ grid-template-columns:1fr; gap:32px; } }
-  .about-grid p + p{ margin-top:16px; }
-  .pillars{ display:flex; flex-direction:column; }
-  .pillar{
-    padding:22px 4px;
-    border-top:1px solid var(--line);
-    display:grid; grid-template-columns:56px 1fr; gap:18px;
-    transition:padding-left .2s ease, background .2s ease;
-    border-radius:6px;
-  }
-  .pillar:hover{ padding-left:12px; background:rgba(140,130,184,0.05); }
-  .pillar:last-child{ border-bottom:1px solid var(--line); }
-  .pillar-mark{ font-family:'Fraunces', serif; color:var(--brand-deep); font-size:17px; }
-  .pillar h3{ font-size:18px; font-weight:600; }
-  .pillar p{ margin-top:6px; color:var(--ink-soft); font-size:15.5px; }
-
-  /* ---------- Academics ---------- */
-  .stages{
-    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
-    background:var(--line);
-    border:1px solid var(--line);
-    border-radius:14px;
-    overflow:hidden;
-  }
-  @media (max-width:760px){ .stages{ grid-template-columns:1fr; } }
-  .stage{
-    background:var(--paper);
-    padding:36px 32px;
-    transition:background .2s ease, transform .2s ease;
-    position:relative;
-  }
-  .stage:hover{ background:#fff; transform:translateY(-3px); box-shadow:0 20px 36px -28px rgba(36,31,66,0.3); z-index:1; }
-  .stage h3{ font-size:21px; margin-bottom:12px; }
-  .stage-age{ color:var(--brand-deep); font-size:14px; margin-bottom:16px; display:block; }
-  .stage ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:15px; }
-  .stage li + li{ margin-top:8px; }
-
-  /* ---------- Admissions ---------- */
-  .admissions{
-    background:var(--paper-dim);
-  }
-  .steps{ display:flex; flex-direction:column; }
-  .step{
-    display:grid; grid-template-columns:60px 1fr; gap:20px;
-    padding:26px 4px;
-    border-top:1px solid var(--line);
-    transition:padding-left .2s ease;
-    border-radius:6px;
-  }
-  .step:hover{ padding-left:12px; }
-  .steps .step:last-child{ border-bottom:1px solid var(--line); }
-  .step-num{ font-family:'Fraunces', serif; font-size:26px; color:var(--brand-deep); }
-  .step h3{ font-size:17px; font-weight:600; margin-bottom:6px; }
-  .step p{ color:var(--ink-soft); font-size:15.5px; margin:0; max-width:56ch; }
-
-  .admissions-cta{
-    margin-top:44px;
-    display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:wrap; gap:20px;
-    background:
-      radial-gradient(ellipse 70% 90% at 90% -10%, rgba(140,130,184,0.4), transparent 60%),
-      linear-gradient(160deg, #241F42 0%, #2C2650 100%);
-    color:var(--paper);
-    padding:36px 40px;
-    border-radius:16px;
-    box-shadow:0 24px 48px -28px rgba(36,31,66,0.5);
-  }
-  .admissions-cta h3{ color:var(--paper); font-size:22px; max-width:20ch; }
-  .admissions-cta p{ color:#D8D3EA; margin-top:8px; font-size:15px; }
-
-  /* ---------- Contact ---------- */
-  .contact-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:64px;
-  }
-  @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; gap:40px; } }
-  .contact-item{ padding:20px 4px; border-top:1px solid var(--line); transition:padding-left .2s ease; border-radius:6px; }
-  .contact-item:hover{ padding-left:10px; background:rgba(140,130,184,0.05); }
-  .contact-item:last-child{ border-bottom:1px solid var(--line); }
-  .contact-label{ font-size:13px; color:var(--brand-deep); margin-bottom:6px; }
-  .contact-value{ font-size:17px; }
-  .contact-value a{ text-decoration:none; }
-  .contact-value a:hover{ text-decoration:underline; text-decoration-color:var(--gold); }
-  .map-frame{
-    border:1px solid var(--line);
-    height:100%;
-    min-height:340px;
-    filter:grayscale(0.15);
-    border-radius:14px;
-    overflow:hidden;
-  }
-  .map-frame iframe{ width:100%; height:100%; min-height:340px; border:0; display:block; }
-
-  /* ---------- Footer ---------- */
-  footer{
-    background:var(--ink); color:#B6AFD6;
-    padding:48px 0 32px;
-    font-size:14px;
-  }
-  .footer-top{
-    display:flex; justify-content:space-between; align-items:flex-start;
-    flex-wrap:wrap; gap:24px;
-    padding-bottom:28px; border-bottom:1px solid var(--line-on-dark);
-  }
-  .footer-brand-row{ display:flex; align-items:center; gap:12px; }
-  .footer-brand-row img{ width:34px; height:34px; object-fit:contain; }
-  .footer-brand{ color:var(--paper); font-family:'Fraunces', serif; font-size:19px; }
-  .footer-cols{ display:flex; gap:64px; flex-wrap:wrap; }
-  .footer-col a, .footer-col button.linklike{ display:block; text-decoration:none; color:#B6AFD6; padding:4px 0; font-size:14px; background:none; border:none; cursor:pointer; text-align:left; }
-  .footer-col a:hover, .footer-col button.linklike:hover{ color:var(--gold-soft); }
-  .footer-bottom{
-    padding-top:22px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
-  }
-
-  .reveal{ animation: rise .7s ease both; }
-  @keyframes rise{ from{ opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;} }
-  @media (prefers-reduced-motion: reduce){ .reveal{ animation:none; } }
+  /* ---------- Sections ---------- */
+  .section{ padding:82px 0; }
+  @media (max-width:640px){ .section{ padding:56px 0; } }
+  .section-head{ display:flex; justify-content:space-between; gap:30px; align-items:flex-end; margin-bottom:38px; flex-wrap:wrap; }
+  .section-head p{ max-width:52ch; color:var(--ink-soft); margin:0; }
+  .section-head h2{ font-size:clamp(28px,3.6vw,40px); max-width:16ch; margin-top:10px; }
+  @media (max-width:760px){ .section-head{ display:block; } }
 
   .reveal-onscroll{ opacity:0; transform:translateY(20px); transition:opacity .7s ease, transform .7s ease; }
   .reveal-onscroll.in-view{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce){
-    .reveal-onscroll{ opacity:1; transform:none; transition:none; }
-  }
+  @media (prefers-reduced-motion: reduce){ .reveal-onscroll{ opacity:1; transform:none; transition:none; } }
 
-  /* ================= Portal / Admin shared ================= */
-  .app-hero{
-    background:
-      radial-gradient(ellipse 60% 70% at 85% 0%, rgba(140,130,184,0.32), transparent 60%),
-      linear-gradient(160deg, #241F42 0%, #2C2650 60%, #241F42 100%);
-    color:var(--paper);
-  }
-  .app-hero .wrap{ padding:64px 32px 48px; }
-  .app-hero .eyebrow{ margin-bottom:14px; }
-  .app-hero h1{ font-size:clamp(30px,4vw,42px); color:var(--paper); max-width:20ch; }
-  .app-hero p{ margin-top:14px; color:#D8D3EA; max-width:52ch; font-size:15.5px; }
+  .features{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:760px){ .features{ grid-template-columns:1fr; } }
+  .feature{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:28px;
+    transition:transform .2s ease, box-shadow .2s ease; }
+  .feature:hover{ transform:translateY(-3px); box-shadow:var(--shadow); }
+  .feature .icon{ width:45px; height:45px; border-radius:12px; background:#efecf9; display:grid; place-items:center;
+    color:var(--brand-deep); font-size:20px; margin-bottom:20px; }
+  .feature h3{ font-size:20px; }
+  .feature p{ color:var(--ink-soft); font-size:14.5px; margin-top:8px; }
 
-  .panel{
-    background:#fff; border:1px solid var(--line); padding:36px;
-    border-radius:14px;
-    box-shadow:0 1px 2px rgba(36,31,66,0.03), 0 16px 32px -24px rgba(36,31,66,0.18);
-    transition:box-shadow .2s ease;
-  }
-  .panel:hover{ box-shadow:0 1px 2px rgba(36,31,66,0.04), 0 20px 40px -22px rgba(36,31,66,0.24); }
-  .panel + .panel{ margin-top:24px; }
-  .panel h3{ font-size:19px; margin-bottom:6px; }
-  .panel .hint{ color:var(--ink-soft); font-size:14px; margin-bottom:22px; }
+  .stages{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:760px){ .stages{ grid-template-columns:1fr; } }
+  .stage{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:30px;
+    transition:transform .2s ease, box-shadow .2s ease; }
+  .stage:hover{ transform:translateY(-3px); box-shadow:var(--shadow); }
+  .stage h3{ font-size:21px; margin-bottom:12px; }
+  .stage-age{ color:var(--brand-deep); font-size:13px; margin-bottom:16px; display:block; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .stage ul{ margin:0; padding-left:18px; color:var(--ink-soft); font-size:15px; }
+  .stage li + li{ margin-top:8px; }
 
-  .field{ margin-bottom:18px; }
-  .field label{ display:block; font-size:13.5px; color:var(--brand-deep); margin-bottom:6px; }
+  /* ---------- Portal promo section ---------- */
+  .portal-section{ background:#eeeaf5; }
+  .portal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:760px){ .portal-grid{ grid-template-columns:1fr; } }
+  .portal-card{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:30px; box-shadow:var(--shadow); }
+  .portal-card h3{ font-size:24px; margin:8px 0; }
+  .portal-card > p{ color:var(--ink-soft); font-size:14.5px; }
+  .portal-list{ padding:0; margin:18px 0 22px; list-style:none; }
+  .portal-list li{ padding:10px 0; border-bottom:1px solid var(--line); font-size:14.5px; }
+  .portal-list li:last-child{ border:0; }
+  .portal-list b{ float:right; color:var(--good); }
+
+  /* ---------- Admissions ---------- */
+  .admissions{ background:var(--paper-dim); }
+  .steps{ display:flex; flex-direction:column; }
+  .step{ display:grid; grid-template-columns:60px 1fr; gap:20px; padding:24px 4px; border-top:1px solid var(--line);
+    transition:padding-left .2s ease; border-radius:6px; }
+  .step:hover{ padding-left:12px; }
+  .steps .step:last-child{ border-bottom:1px solid var(--line); }
+  .step-num{ font-family:'Playfair Display', serif; font-size:26px; color:var(--brand-deep); }
+  .step h3{ font-size:17px; font-weight:600; margin-bottom:6px; }
+  .step p{ color:var(--ink-soft); font-size:15px; margin:0; max-width:56ch; }
+  .admissions-cta{ margin-top:40px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;
+    background:linear-gradient(160deg,#201b3d 0%,#2c2650 100%); color:#fff; padding:34px 38px; border-radius:20px;
+    box-shadow:0 24px 48px -28px rgba(32,27,61,0.5); }
+  .admissions-cta h3{ color:#fff; font-size:22px; max-width:20ch; }
+  .admissions-cta p{ color:#d8d4e6; margin-top:8px; font-size:15px; }
+
+  /* ---------- Contact ---------- */
+  .contact-grid{ display:grid; grid-template-columns:1fr 1fr; gap:56px; }
+  @media (max-width:760px){ .contact-grid{ grid-template-columns:1fr; gap:36px; } }
+  .contact-item{ padding:18px 4px; border-top:1px solid var(--line); transition:padding-left .2s ease; border-radius:6px; }
+  .contact-item:hover{ padding-left:10px; background:rgba(141,131,192,0.05); }
+  .contact-item:last-child{ border-bottom:1px solid var(--line); }
+  .contact-label{ font-size:13px; color:var(--brand-deep); margin-bottom:6px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+  .contact-value{ font-size:16.5px; }
+  .contact-value a{ text-decoration:none; }
+  .contact-value a:hover{ text-decoration:underline; text-decoration-color:var(--gold); }
+  .map-frame{ border:1px solid var(--line); height:100%; min-height:320px; border-radius:18px; overflow:hidden; }
+  .map-frame iframe{ width:100%; height:100%; min-height:320px; border:0; display:block; }
+
+  /* ---------- Footer ---------- */
+  footer{ background:var(--ink); color:#c7c3d4; padding:48px 0 25px; }
+  .footer-grid{ display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:40px; }
+  @media (max-width:760px){ .footer-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:560px){ .footer-grid{ grid-template-columns:1fr; } }
+  .footer-brand-row{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .footer-brand-row img{ width:34px; height:34px; object-fit:contain; }
+  .footer-brand{ color:#fff; font-family:'Playfair Display', serif; font-size:20px; }
+  .footer-grid p{ font-size:13px; color:#c7c3d4; }
+  .footer-col b{ display:block; color:#fff; margin-bottom:6px; font-size:14px; }
+  .footer-col a, .footer-col button.linklike{ display:block; text-decoration:none; padding:5px 0; font-size:13px;
+    color:#c7c3d4; background:none; border:none; cursor:pointer; text-align:left; }
+  .footer-col a:hover, .footer-col button.linklike:hover{ color:var(--gold-soft); }
+  .copyright{ border-top:1px solid rgba(255,255,255,.12); margin-top:32px; padding-top:20px; font-size:12px;
+    display:flex; justify-content:space-between; gap:15px; flex-wrap:wrap; }
+
+  /* ================= Login modal ================= */
+  .overlay{ position:fixed; inset:0; background:rgba(18,15,35,.62); z-index:100; display:grid; place-items:center; padding:20px; }
+  .modal{ background:#fff; width:min(440px,100%); border-radius:20px; padding:32px; position:relative;
+    box-shadow:0 30px 100px rgba(0,0,0,.25); max-height:90vh; overflow-y:auto; }
+  .modal .close{ position:absolute; right:16px; top:12px; border:0; background:none; font-size:24px; color:var(--ink-soft); cursor:pointer; }
+  .modal h2{ font-size:28px; margin-top:6px; }
+  .role-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:20px 0; }
+  .role-tabs button{ border:1px solid var(--line); background:#fff; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; }
+  .role-tabs button.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .form-note{ font-size:12.5px; color:var(--ink-soft); margin-top:14px; }
+  .note-box{ background:var(--paper-dim); border:1px solid var(--line); padding:14px 16px; font-size:13.5px; color:var(--ink-soft); border-radius:10px; margin-top:14px; }
+  .note-box strong{ color:var(--ink); }
+
+  /* ---------- Forms (shared) ---------- */
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:13px; font-weight:700; color:var(--brand-deep); margin-bottom:6px; }
   .field input, .field select, .field textarea{
-    width:100%; padding:12px 14px; border:1px solid var(--line); background:#fff;
-    border-radius:10px; font-family:inherit; font-size:15px; color:var(--ink);
-    transition:border-color .15s ease, box-shadow .15s ease;
+    width:100%; padding:12px 14px; border:1px solid #dcd8d0; background:#fff;
+    border-radius:9px; font-family:inherit; font-size:15px; color:var(--ink); outline:none;
   }
-  .field input:focus, .field select:focus, .field textarea:focus{
-    outline:none; border-color:var(--brand); box-shadow:0 0 0 4px rgba(140,130,184,0.18);
-  }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--brand); }
   .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:640px){ .field-row{ grid-template-columns:1fr; } }
 
-  .login-shell{
-    max-width:440px; margin:0 auto;
-  }
-  .login-shell .panel{
-    position:relative;
-    overflow:hidden;
-  }
-  .login-shell .panel::before{
-    content:'';
-    position:absolute; top:0; left:0; right:0; height:4px;
-    background:linear-gradient(90deg, var(--brand-deep), var(--gold));
-  }
+  .alert{ padding:12px 16px; border-radius:9px; font-size:14px; margin-bottom:16px; border:1px solid transparent; }
+  .alert-error{ background:#fff1f0; color:var(--bad); border-color:#f0cecc; }
+  .alert-good{ background:#e6f5ee; color:var(--good); border-color:#c7ead9; }
 
-  .alert{
-    padding:12px 16px; border-radius:10px; font-size:14.5px; margin-bottom:18px;
-    border:1px solid transparent;
-  }
-  .alert-error{ background:rgba(180,69,60,0.08); color:var(--bad); border-color:rgba(180,69,60,0.25); }
-  .alert-good{ background:rgba(63,122,79,0.08); color:var(--good); border-color:rgba(63,122,79,0.25); }
+  /* ================= App shell (portal + admin) ================= */
+  .app{ min-height:100vh; background:#f4f3f8; }
+  .appbar{ height:72px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center;
+    justify-content:space-between; padding:0 25px; position:sticky; top:0; z-index:40; }
+  .appbrand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+  .appbrand img{ width:38px; height:38px; object-fit:contain; }
+  .userbox{ display:flex; align-items:center; gap:12px; }
+  .userbox b{ display:block; font-size:14px; }
+  .userbox small{ display:block; color:var(--ink-soft); font-size:11px; }
+  .avatar{ width:38px; height:38px; border-radius:50%; background:#ece9f7; display:grid; place-items:center;
+    color:var(--brand-deep); font-weight:700; }
+  .app-layout{ display:grid; grid-template-columns:245px 1fr; min-height:calc(100vh - 72px); }
+  @media (max-width:900px){ .app-layout{ grid-template-columns:1fr; } .sidebar{ display:none; } .main{ padding:18px; } }
+  .sidebar{ background:var(--ink); color:#c9c5d8; padding:20px 14px; }
+  .side-label{ font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#89849f; padding:12px; }
+  .side-btn{ width:100%; text-align:left; border:0; background:transparent; color:#c9c5d8; padding:12px 14px;
+    border-radius:9px; margin:2px 0; font-weight:600; cursor:pointer; font-size:14.5px; transition:background .15s ease, color .15s ease; }
+  .side-btn:hover{ background:#332e55; color:#fff; }
+  .side-btn.active{ background:#332e55; color:#fff; }
+  .main{ padding:30px; min-width:0; }
+  .page-title{ display:flex; justify-content:space-between; gap:15px; align-items:center; margin-bottom:24px; flex-wrap:wrap; }
+  .page-title h1{ font-size:30px; }
+  .page-title p{ margin:5px 0 0; color:var(--ink-soft); font-size:13px; }
 
-  .idle-banner{
-    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(120%);
-    background:var(--ink); color:var(--paper);
-    padding:16px 22px; border-radius:10px;
-    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
-    box-shadow:0 24px 48px -20px rgba(36,31,66,0.5);
-    z-index:200; max-width:min(92vw, 460px);
-    transition:transform .3s ease;
-  }
-  .idle-banner.show{ transform:translateX(-50%) translateY(0); }
-  .idle-banner p{ margin:0; font-size:14px; color:#D8D3EA; }
-  .idle-banner button{
-    background:var(--gold); color:var(--ink); border:none; padding:9px 16px;
-    border-radius:2px; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;
-  }
+  .stat-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+  @media (max-width:900px){ .stat-cards{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:500px){ .stat-cards{ grid-template-columns:1fr; } }
+  .stat-card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:19px;
+    transition:box-shadow .2s ease; }
+  .stat-card:hover{ box-shadow:var(--shadow); }
+  .stat-card .label{ font-size:12px; color:var(--ink-soft); }
+  .stat-card .value{ font-size:23px; font-weight:700; margin-top:5px; font-family:'Playfair Display',serif; }
 
-  .tabbar{ display:flex; gap:8px; border-bottom:1px solid var(--line); margin-bottom:32px; flex-wrap:wrap; }
-  .tabbar button{
-    background:none; border:none; padding:12px 4px; margin-right:22px; font-size:15px;
-    color:var(--ink-soft); cursor:pointer; border-bottom:2px solid transparent; font-family:inherit;
-    transition:color .15s ease, border-color .2s ease;
-  }
-  .tabbar button:hover{ color:var(--ink); }
-  .tabbar button.active{ color:var(--ink); border-color:var(--gold); font-weight:600; }
+  .panel{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:26px; box-shadow:var(--shadow); }
+  .panel + .panel{ margin-top:18px; }
+  .panel h3{ font-size:19px; margin-bottom:6px; }
+  .panel .hint{ color:var(--ink-soft); font-size:14px; margin-bottom:20px; }
 
-  .dash-top{
-    display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;
-    margin-bottom:28px;
-  }
-  .dash-id{ font-size:13.5px; color:var(--ink-soft); }
-  .dash-name{ font-size:24px; }
-
-  table.data{ width:100%; border-collapse:collapse; font-size:15px; }
-  table.data th, table.data td{ text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); }
-  table.data th{ color:var(--brand-deep); font-size:13px; font-weight:600; }
-  table.data tbody tr{ transition:background .15s ease; }
-  table.data tbody tr:hover{ background:rgba(140,130,184,0.06); }
-  table.data tr:last-child td{ border-bottom:none; }
   .table-wrap{ overflow-x:auto; }
+  table.data{ width:100%; border-collapse:collapse; font-size:14.5px; }
+  table.data th, table.data td{ text-align:left; padding:12px 9px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.data th{ color:var(--ink-soft); font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
+  table.data tbody tr{ transition:background .15s ease; }
+  table.data tbody tr:hover{ background:rgba(141,131,192,0.06); }
+  table.data tr:last-child td{ border-bottom:none; }
 
-  .badge{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:12.5px; font-weight:600; }
-  .badge-good{ background:rgba(63,122,79,0.1); color:var(--good); }
-  .badge-warn{ background:rgba(201,162,39,0.14); color:#8a6c14; }
-  .badge-bad{ background:rgba(180,69,60,0.1); color:var(--bad); }
-
-  .stat-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:28px; border-radius:14px; overflow:hidden; }
-  @media (max-width:700px){ .stat-cards{ grid-template-columns:1fr; } }
-  .stat-card{ background:#fff; padding:24px 26px; transition:background .2s ease; }
-  .stat-card:hover{ background:var(--paper-dim); }
-  .stat-card .label{ font-size:13px; color:var(--brand-deep); margin-bottom:8px; }
-  .stat-card .value{ font-family:'Fraunces',serif; font-size:26px; }
+  .badge{ display:inline-flex; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+  .badge-good{ background:#e6f5ee; color:var(--good); }
+  .badge-warn{ background:#fbf3d9; color:#8b7010; }
+  .badge-bad{ background:#fff0ef; color:var(--bad); }
 
   .row-actions{ display:flex; gap:10px; flex-wrap:wrap; }
-  .row-actions button{ font-size:13px; padding:6px 12px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .row-actions button{ font-size:12.5px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
   .row-actions button:hover{ border-color:var(--brand); }
 
-  .empty-state{ padding:40px 20px; text-align:center; color:var(--ink-soft); border:1px dashed var(--line); border-radius:10px; }
+  .empty-state{ padding:36px 20px; text-align:center; color:var(--ink-soft); border:1px dashed var(--line); border-radius:12px; }
 
   .subject-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
   .subject-row{ display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:10px; align-items:center; }
   @media (max-width:640px){ .subject-row{ grid-template-columns:1fr 1fr; } }
-  .subject-row input{ padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14.5px; }
+  .subject-row input{ padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14.5px; }
   .subject-row .grade-chip{ font-size:13px; text-align:center; padding:8px 6px; }
   .subject-row .remove-btn{ background:none; border:none; color:var(--bad); cursor:pointer; font-size:18px; line-height:1; }
 
-  .note-box{ background:var(--paper-dim); border:1px solid var(--line); padding:16px 18px; font-size:13.5px; color:var(--ink-soft); border-radius:10px; margin-top:8px; }
-  .note-box strong{ color:var(--ink); }
+  .fee-box{ display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px; border:1px solid var(--line); border-radius:12px; margin:10px 0; }
+  .fee-box small{ display:block; color:var(--ink-soft); }
+  .fee-box strong{ font-size:19px; }
 
-  .receipt{ border:1px solid var(--line); padding:24px; background:#fff; }
-  .receipt-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:14.5px; }
-  .receipt-row:last-child{ border-bottom:none; font-weight:600; }
+  .profile{ display:flex; align-items:center; gap:15px; margin-bottom:22px; }
+  .profile-avatar{ width:60px; height:60px; border-radius:15px; background:#e9e6f4; display:grid; place-items:center;
+    font-size:22px; font-weight:700; color:var(--brand-deep); }
+  .kv{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media (max-width:500px){ .kv{ grid-template-columns:1fr; } }
+  .kv div{ background:#f7f6fa; border-radius:10px; padding:12px; }
+  .kv small{ display:block; color:var(--ink-soft); font-size:10px; }
+  .kv b{ font-size:13.5px; }
 
-  .app-page[style*="display:none"]{ display:none; }
+  .login-shell .panel::before{ display:none; }
+
+  /* ---------- Idle timeout banner ---------- */
+  .idle-banner{
+    position:fixed; left:0; right:0; bottom:0; z-index:200;
+    background:var(--ink); color:#fff; padding:14px 20px;
+    display:flex; gap:16px; align-items:center; justify-content:center; flex-wrap:wrap;
+    font-size:14.5px; box-shadow:0 -8px 24px rgba(0,0,0,.15);
+    transform:translateY(100%); transition:transform .25s ease;
+  }
+  .idle-banner.show{ transform:translateY(0); }
+  .idle-banner button{ background:var(--gold); color:var(--ink); border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
+
+  .toast{ position:fixed; right:20px; bottom:20px; background:var(--ink); color:#fff; padding:13px 16px; border-radius:10px;
+    z-index:250; box-shadow:var(--shadow); font-size:13px; transition:opacity .2s ease, transform .2s ease; }
+  .toast.hidden{ opacity:0; transform:translateY(8px); pointer-events:none; }
 </style>
+
 </head>
 <body>
 
-<header>
+<div id="site">
+<header class="site-header">
   <div class="wrap nav">
-    <button class="brand" data-page="home" onclick="showPage('home')">
-      <img class="crest-img" src="logo.png" alt="Maflun Academy crest">
-      <span class="brand-name">Maflun Academy</span>
-    </button>
-    <nav class="links">
-      <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
-      <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
-      <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
-      <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
-      <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
-      <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Contact</a>
+    <a class="brand" href="#top">
+      <img src="logo.png" alt="Maflun Academy crest">
+      <span><strong>Maflun Academy</strong><small>Malkali Farm · Mando, Kaduna</small></span>
+    </a>
+    <nav class="navlinks">
+      <a href="#about" onclick="return scrollToId(event,'about')">About</a>
+      <a href="#academics" onclick="return scrollToId(event,'academics')">Academics</a>
+      <a href="#portal" onclick="return scrollToId(event,'portal')">Portal</a>
+      <a href="#contact" onclick="return scrollToId(event,'contact')">Contact</a>
     </nav>
-    <button class="nav-cta" onclick="showPage('portal')">Student Portal</button>
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="nav-actions">
+      <button class="btn btn-primary" onclick="openLoginModal('student')">Student &amp; Parent Portal</button>
+      <button class="btn btn-gold" onclick="openLoginModal('staff')">Staff Admin</button>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
   </div>
   <div class="mobile-menu wrap" id="mobileMenu">
-    <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
-    <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
-    <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
-    <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
-    <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
-    <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Contact</a>
+    <a href="#about" onclick="return scrollToId(event,'about')">About</a>
+    <a href="#academics" onclick="return scrollToId(event,'academics')">Academics</a>
+    <a href="#portal" onclick="return scrollToId(event,'portal')">Portal</a>
+    <a href="#contact" onclick="return scrollToId(event,'contact')">Contact</a>
+    <button class="linklike" onclick="openLoginModal('student')">Student &amp; Parent Portal</button>
+    <button class="linklike" onclick="openLoginModal('staff')">Staff Admin</button>
   </div>
 </header>
 
-<!-- ============================================================ -->
-<!-- HOME PAGE                                                     -->
-<!-- ============================================================ -->
-<div id="page-home" class="app-page">
-
 <section class="hero" id="top">
   <div class="wrap">
-    <div class="reveal">
+    <div>
       <div class="eyebrow">Mando, Kaduna State · Brighter Future</div>
       <h1>Building character and competence, one pupil at a time.</h1>
-      <p class="hero-sub">Maflun Academy is a nursery, primary and secondary school committed to disciplined learning, strong values and results that prepare pupils for life beyond the classroom.</p>
-      <div class="hero-actions">
-        <a class="btn-gold" href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Start admission</a>
-        <button class="btn-outline" onclick="showPage('portal')">Portal &amp; fee balance</button>
-      </div>
-      <div class="hero-stats">
-        <div>
-          <div class="stat-num">Nursery–SS3</div>
-          <div class="stat-label">Full academic pathway</div>
-        </div>
-        <div>
-          <div class="stat-num">RC 1710300</div>
-          <div class="stat-label">Registered institution</div>
-        </div>
-        <div>
-          <div class="stat-num">Kaduna</div>
-          <div class="stat-label">Malkali Farm, Mando</div>
-        </div>
+      <p>Maflun Academy is a nursery, primary and secondary school committed to disciplined learning, strong values and a modern school portal that keeps families in the loop.</p>
+      <div class="hero-buttons">
+        <a class="btn btn-gold" href="#admissions" onclick="return scrollToId(event,'admissions')">Start admission</a>
+        <button class="btn btn-light" onclick="openLoginModal('student')">Open the portal</button>
       </div>
     </div>
-    <div class="hero-emblem">
-      <div class="emblem-ring"><img src="logo.png" alt="Maflun Academy — Brighter Future crest"></div>
-    </div>
-  </div>
-</section>
-
-<section id="about">
-  <div class="wrap">
-    <div class="section-head reveal-onscroll">
-      <div class="section-num">About</div>
-      <div>
-        <h2>A school built on discipline, care and steady standards.</h2>
-        <p>What Maflun Academy stands for, and how it shows up in the classroom every day.</p>
-      </div>
-    </div>
-    <div class="about-grid">
-      <div>
-        <p>Maflun Academy sits on School Road in Malkali Farm, Mando, Kaduna — a school built to give children in the community a place where learning is taken seriously and every pupil is known by name.</p>
-        <p>We keep classes structured and teachers accountable, so that a child's progress is visible to parents at every stage, from nursery through to senior secondary school. Our motto, <em>Brighter Future</em>, guides everything we do.</p>
-      </div>
-      <div class="pillars reveal-onscroll">
-        <div class="pillar">
-          <div class="pillar-mark">01</div>
-          <div>
-            <h3>Discipline</h3>
-            <p>Clear routines and standards of conduct that pupils carry beyond the school gate.</p>
-          </div>
-        </div>
-        <div class="pillar">
-          <div class="pillar-mark">02</div>
-          <div>
-            <h3>Academic rigour</h3>
-            <p>A curriculum taught to depth, with regular assessment so gaps are caught early.</p>
-          </div>
-        </div>
-        <div class="pillar">
-          <div class="pillar-mark">03</div>
-          <div>
-            <h3>Character</h3>
-            <p>Respect, honesty and responsibility, built into the culture of every classroom.</p>
-          </div>
-        </div>
+    <div class="hero-card">
+      <img src="logo.png" alt="Maflun Academy — Brighter Future crest">
+      <div class="mini">
+        <div><b>Nursery–SS3</b><span>Full academic pathway</span></div>
+        <div><b>RC 1710300</b><span>Registered institution</span></div>
+        <div><b>Results</b><span>Online access</span></div>
+        <div><b>Fees</b><span>Online payment</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="rule">
-
-<section id="academics">
+<section class="section" id="about">
   <div class="wrap">
     <div class="section-head reveal-onscroll">
-      <div class="section-num">Academics</div>
-      <div>
-        <h2>One school, three stages of growth.</h2>
-        <p>A single, connected pathway from a child's earliest years through to their final school exams.</p>
-      </div>
+      <div><div class="eyebrow">01 · The school</div><h2>A school experience built around the whole child.</h2></div>
+      <p>From the classroom to the home, families get a clearer view of learning, fees and student progress — all in one place.</p>
+    </div>
+    <div class="features reveal-onscroll">
+      <div class="feature"><div class="icon">◎</div><h3>Strong academics</h3><p>Structured teaching, continuous assessment and clear academic reporting for every learner.</p></div>
+      <div class="feature"><div class="icon">◆</div><h3>Character &amp; values</h3><p>A disciplined environment that develops responsibility, confidence and respect.</p></div>
+      <div class="feature"><div class="icon">↗</div><h3>Family connection</h3><p>Parents can check results and fee balances, and pay fees online, from one portal.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="academics" style="background:#fff">
+  <div class="wrap">
+    <div class="section-head reveal-onscroll">
+      <div><div class="eyebrow">02 · Academics</div><h2>One pathway from early years to senior school.</h2></div>
+      <p>Staff manage academic records in the admin panel; students and parents see only what's relevant to them.</p>
     </div>
     <div class="stages reveal-onscroll">
-      <div class="stage">
-        <span class="stage-age">Ages 3–5</span>
-        <h3>Nursery</h3>
-        <ul>
-          <li>Early literacy and numeracy</li>
-          <li>Guided play and social skills</li>
-          <li>Small class groups</li>
+      <div class="stage"><span class="stage-age">Ages 3–5</span><h3>Nursery</h3><ul><li>Early literacy and numeracy</li><li>Guided play and social skills</li><li>Small class groups</li></ul></div>
+      <div class="stage"><span class="stage-age">Ages 6–11</span><h3>Primary</h3><ul><li>Core subjects taught to the national curriculum</li><li>Regular tests and report cards</li><li>Sports, arts and clubs</li></ul></div>
+      <div class="stage"><span class="stage-age">Ages 12–17</span><h3>Secondary</h3><ul><li>JSS and SSS preparation, including WAEC/NECO</li><li>Sciences, arts and commercial subjects</li><li>Exam preparation and career guidance</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="section portal-section" id="portal">
+  <div class="wrap">
+    <div class="section-head reveal-onscroll">
+      <div><div class="eyebrow">03 · Digital portal</div><h2>Everything families and staff need in one place.</h2></div>
+      <p>Sign in to check results, pay fees, or manage the school — whichever applies to you.</p>
+    </div>
+    <div class="portal-grid reveal-onscroll">
+      <div class="portal-card">
+        <div class="eyebrow">Student &amp; parent portal</div>
+        <h3>Check results, fees &amp; balances</h3>
+        <p>Log in with the Student ID and PIN issued by the school office.</p>
+        <ul class="portal-list">
+          <li>Term results &amp; report history <b>✓</b></li>
+          <li>Fee balance &amp; payment history <b>✓</b></li>
+          <li>Secure online fee payment <b>✓</b></li>
+          <li>Student profile <b>✓</b></li>
         </ul>
+        <button class="btn btn-primary" onclick="openLoginModal('student')">Login as student / parent</button>
       </div>
-      <div class="stage">
-        <span class="stage-age">Ages 6–11</span>
-        <h3>Primary</h3>
-        <ul>
-          <li>Core subjects taught to the national curriculum</li>
-          <li>Regular tests and report cards</li>
-          <li>Sports, arts and clubs</li>
+      <div class="portal-card">
+        <div class="eyebrow">Staff admin</div>
+        <h3>Manage school operations</h3>
+        <p>For school office and teaching staff, with a real staff account.</p>
+        <ul class="portal-list">
+          <li>Register &amp; search students <b>✓</b></li>
+          <li>Upload term results <b>✓</b></li>
+          <li>Set fees &amp; record payments <b>✓</b></li>
+          <li>School-wide overview <b>✓</b></li>
         </ul>
-      </div>
-      <div class="stage">
-        <span class="stage-age">Ages 12–17</span>
-        <h3>Secondary</h3>
-        <ul>
-          <li>JSS and SSS preparation, including WAEC/NECO</li>
-          <li>Sciences, arts and commercial subjects</li>
-          <li>Exam preparation and career guidance</li>
-        </ul>
+        <button class="btn btn-gold" onclick="openLoginModal('staff')">Open staff admin</button>
       </div>
     </div>
   </div>
 </section>
 
-<section id="admissions" class="admissions">
+<section class="section admissions" id="admissions">
   <div class="wrap">
     <div class="section-head reveal-onscroll">
-      <div class="section-num">Admissions</div>
-      <div>
-        <h2>How to enrol your child.</h2>
-        <p>Admission is open across the school year, subject to space in each class.</p>
-      </div>
+      <div><div class="eyebrow">04 · Admissions</div><h2>How to enrol your child.</h2></div>
+      <p>Admission is open across the school year, subject to space in each class.</p>
     </div>
     <div class="steps reveal-onscroll">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div>
-          <h3>Enquire</h3>
-          <p>Call or email the school office with your child's age and the class you're applying for.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div>
-          <h3>Visit and assess</h3>
-          <p>Bring your child for a short entrance assessment and a tour of the school.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div>
-          <h3>Register</h3>
-          <p>Complete the registration form and submit your child's previous school records, if applicable.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div>
-          <h3>Resume</h3>
-          <p>Receive your child's class placement, resumption date and requirements list. The school office will set up your child's portal login.</p>
-        </div>
-      </div>
+      <div class="step"><div class="step-num">1</div><div><h3>Enquire</h3><p>Call or email the school office with your child's age and the class you're applying for.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><h3>Visit and assess</h3><p>Bring your child for a short entrance assessment and a tour of the school.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><h3>Register</h3><p>Complete the registration form and submit your child's previous school records, if applicable.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div><h3>Resume</h3><p>Receive your child's class placement, resumption date and requirements list. The school office sets up your child's portal login.</p></div></div>
     </div>
     <div class="admissions-cta reveal-onscroll">
-      <div>
-        <h3>Ready to apply, or still deciding?</h3>
-        <p>Speak with the admissions office directly — we're happy to answer questions first.</p>
-      </div>
-      <a class="btn-gold" href="tel:08036126746">Call the office</a>
+      <div><h3>Ready to apply, or still deciding?</h3><p>Speak with the admissions office directly — we're happy to answer questions first.</p></div>
+      <a class="btn btn-gold" href="tel:08036126746">Call the office</a>
     </div>
   </div>
 </section>
 
-<section id="contact">
+<section class="section" id="contact" style="background:#fff">
   <div class="wrap">
     <div class="section-head reveal-onscroll">
-      <div class="section-num">Contact</div>
-      <div>
-        <h2>Visit us or reach out.</h2>
-        <p>The school office is open on weekdays for enquiries, visits and registration.</p>
-      </div>
+      <div><div class="eyebrow">05 · Contact</div><h2>Visit us or reach out.</h2></div>
+      <p>The school office is open on weekdays for enquiries, visits and registration.</p>
     </div>
     <div class="contact-grid reveal-onscroll">
       <div>
-        <div class="contact-item">
-          <div class="contact-label">Address</div>
-          <div class="contact-value">No. 4 School Road, Malkali Farm, Mando, Kaduna, Nigeria</div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Phone</div>
-          <div class="contact-value">
-            <a href="tel:08036126746">0803 612 6746</a> ·
-            <a href="tel:07034382045">0703 438 2045</a> ·
-            <a href="tel:08148992840">0814 899 2840</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Email</div>
-          <div class="contact-value"><a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a></div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Registration</div>
-          <div class="contact-value">RC 1710300</div>
-        </div>
+        <div class="contact-item"><div class="contact-label">Address</div><div class="contact-value">No. 4 School Road, Malkali Farm, Mando, Kaduna, Nigeria</div></div>
+        <div class="contact-item"><div class="contact-label">Phone</div><div class="contact-value">
+          <a href="tel:08036126746">0803 612 6746</a> ·
+          <a href="tel:07034382045">0703 438 2045</a> ·
+          <a href="tel:08148992840">0814 899 2840</a>
+        </div></div>
+        <div class="contact-item"><div class="contact-label">Email</div><div class="contact-value"><a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a></div></div>
+        <div class="contact-item"><div class="contact-label">Registration</div><div class="contact-value">RC 1710300</div></div>
       </div>
       <div class="map-frame">
         <iframe
@@ -758,378 +495,390 @@
   </div>
 </section>
 
-</div><!-- /page-home -->
-
-<!-- ============================================================ -->
-<!-- PORTAL PAGE (students / parents)                              -->
-<!-- ============================================================ -->
-<div id="page-portal" class="app-page" style="display:none">
-  <section class="app-hero">
-    <div class="wrap">
-      <div class="eyebrow">Student &amp; Parent Portal</div>
-      <h1>Check results and your school fee balance.</h1>
-      <p>Log in with the Student ID and PIN issued by the school office. If you don't have one yet, contact the admissions office.</p>
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-row"><img src="logo.png" alt="Maflun Academy crest"><div class="footer-brand">Maflun Academy</div></div>
+        <p>Nursery, Primary &amp; Secondary education. Brighter Future.</p>
+      </div>
+      <div class="footer-col">
+        <b>Explore</b>
+        <a href="#about" onclick="return scrollToId(event,'about')">About</a>
+        <a href="#academics" onclick="return scrollToId(event,'academics')">Academics</a>
+        <a href="#portal" onclick="return scrollToId(event,'portal')">Portal</a>
+      </div>
+      <div class="footer-col">
+        <b>Portal</b>
+        <button class="linklike" onclick="openLoginModal('student')">Student / parent login</button>
+        <button class="linklike" onclick="openLoginModal('staff')">Staff login</button>
+        <a href="tel:08036126746">0803 612 6746</a>
+      </div>
     </div>
-  </section>
+    <div class="copyright">
+      <span>© <span id="year"></span> Maflun Academy. All rights reserved.</span>
+      <span>RC 1710300, Kaduna, Nigeria</span>
+    </div>
+  </div>
+</footer>
+</div><!-- /site -->
 
-  <section>
-    <div class="wrap">
+<div id="loginOverlay" class="overlay hidden">
+  <div class="modal">
+    <button class="close" onclick="closeLoginModal()">×</button>
+    <div class="eyebrow">Maflun Academy</div>
+    <h2>Portal login</h2>
+    <p style="color:var(--ink-soft);font-size:13px">Sign in to continue to your school account.</p>
+    <div class="role-tabs">
+      <button id="loginRoleStudent" onclick="setLoginRole('student')">Student / Parent</button>
+      <button id="loginRoleStaff" onclick="setLoginRole('staff')">Staff</button>
+    </div>
 
-      <!-- LOGIN -->
-      <div id="portalLogin" class="login-shell">
+    <div id="studentLoginForm">
+      <div id="portalLoginAlert"></div>
+      <div class="field">
+        <label for="portalId">Student ID</label>
+        <input id="portalId" type="text" placeholder="e.g. MAF-0001" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="portalPin">PIN</label>
+        <input id="portalPin" type="password" placeholder="4–6 digit PIN" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="portalLogin()">Sign in</button>
+      <p class="form-note">New here? The school office creates every Student ID and PIN during registration.</p>
+    </div>
+
+    <div id="staffLoginForm" class="hidden">
+      <div id="adminLoginAlert"></div>
+      <div class="field">
+        <label for="adminEmail">Email</label>
+        <input id="adminEmail" type="email" placeholder="you@maflunacademy.com" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="adminLogin()">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <div class="appbar">
+    <div class="appbrand"><img src="logo.png" alt="Maflun Academy crest"><span>Maflun Academy Portal</span></div>
+    <div class="userbox">
+      <div><b id="appUserName">—</b><small id="appUserRole">—</small></div>
+      <div class="avatar" id="appAvatar">M</div>
+      <button class="btn btn-light" id="appLogoutBtn">Logout</button>
+    </div>
+  </div>
+  <div class="app-layout">
+
+    <aside class="sidebar" id="portalSidebar" style="display:none">
+      <div class="side-label">Main menu</div>
+      <button id="ptab-dashboard" class="side-btn" onclick="portalTab('dashboard')">Dashboard</button>
+      <button id="ptab-results" class="side-btn" onclick="portalTab('results')">Results</button>
+      <button id="ptab-fees" class="side-btn" onclick="portalTab('fees')">Fees</button>
+      <button id="ptab-profile" class="side-btn" onclick="portalTab('profile')">Profile</button>
+      <div class="side-label" style="margin-top:20px">Account</div>
+      <button class="side-btn" onclick="portalLogout()">↪ Sign out</button>
+    </aside>
+
+    <aside class="sidebar" id="adminSidebar" style="display:none">
+      <div class="side-label">Main menu</div>
+      <button id="atab-dashboard" class="side-btn" onclick="adminTab('dashboard')">Dashboard</button>
+      <button id="atab-students" class="side-btn" onclick="adminTab('students')">Students</button>
+      <button id="atab-results" class="side-btn" onclick="adminTab('results')">Results</button>
+      <button id="atab-fees" class="side-btn" onclick="adminTab('fees')">Fees</button>
+      <div class="side-label" style="margin-top:20px">Account</div>
+      <button class="side-btn" onclick="adminLogout()">↪ Sign out</button>
+    </aside>
+
+    <main class="main">
+
+      <!-- ======= PORTAL: Dashboard ======= -->
+      <div id="ppane-dashboard" style="display:none">
+        <div class="page-title"><div><h1 id="portalDashGreeting">Welcome</h1><p>Your student dashboard.</p></div></div>
+        <div class="stat-cards" id="portalDashCards"></div>
         <div class="panel">
-          <h3>Log in</h3>
-          <p class="hint">Enter your child's Student ID and the PIN given by the school office.</p>
-          <div id="portalLoginAlert"></div>
-          <div class="field">
-            <label for="portalId">Student ID</label>
-            <input id="portalId" type="text" placeholder="e.g. MAF-0001" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="portalPin">PIN</label>
-            <input id="portalPin" type="password" placeholder="4–6 digit PIN" autocomplete="off">
-          </div>
-          <button class="btn-gold" style="width:100%" onclick="portalLogin()">Log in</button>
-          <div class="note-box" style="margin-top:20px">
-            New here? The school office creates every Student ID and PIN from the Staff Admin panel during registration.
+          <h3>Quick links</h3>
+          <div class="row-actions">
+            <button onclick="portalTab('results')">View results</button>
+            <button onclick="portalTab('fees')">Check fees &amp; pay</button>
+            <button onclick="portalTab('profile')">My profile</button>
           </div>
         </div>
       </div>
 
-      <!-- DASHBOARD -->
-      <div id="portalDash" style="display:none">
-        <div class="dash-top">
-          <div>
-            <div class="dash-id" id="pdId"></div>
-            <div class="dash-name" id="pdName"></div>
-            <div class="dash-id" id="pdClass"></div>
-          </div>
-          <button class="btn-outline" style="color:var(--ink);border-color:var(--line)" onclick="portalLogout()">Log out</button>
-        </div>
-
-        <div class="tabbar">
-          <button id="ptab-results" class="active" onclick="portalTab('results')">Results</button>
-          <button id="ptab-fees" onclick="portalTab('fees')">Fees</button>
-        </div>
-
-        <div id="ppane-results">
-          <div class="panel">
-            <h3>Term results</h3>
-            <p class="hint">Select a session and term to view your child's report.</p>
-            <div class="field-row">
-              <div class="field">
-                <label>Session</label>
-                <select id="resSession" onchange="renderPortalResults()"></select>
-              </div>
-              <div class="field">
-                <label>Term</label>
-                <select id="resTerm" onchange="renderPortalResults()">
-                  <option>First Term</option>
-                  <option>Second Term</option>
-                  <option>Third Term</option>
-                </select>
-              </div>
-            </div>
-            <div id="resultsBody"></div>
-          </div>
-        </div>
-
-        <div id="ppane-fees" style="display:none">
-          <div class="panel">
-            <h3>Check balance for a term</h3>
-            <div class="field-row">
-              <div class="field">
-                <label>Session</label>
-                <select id="feeSession" onchange="renderPortalFees()"></select>
-              </div>
-              <div class="field">
-                <label>Term</label>
-                <select id="feeTerm" onchange="renderPortalFees()">
-                  <option>First Term</option>
-                  <option>Second Term</option>
-                  <option>Third Term</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="stat-cards" id="feeStatCards"></div>
-          <div class="panel">
-            <h3>Payment history</h3>
-            <p class="hint">Fees are paid at the school office (cash or bank transfer). The office records each payment here once received, so your balance stays up to date.</p>
-            <div id="paymentHistory"></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-</div><!-- /page-portal -->
-
-<!-- ============================================================ -->
-<!-- ADMIN PAGE (staff)                                            -->
-<!-- ============================================================ -->
-<div id="page-admin" class="app-page" style="display:none">
-  <section class="app-hero">
-    <div class="wrap">
-      <div class="eyebrow">Staff Admin</div>
-      <h1>Manage students, results and fees.</h1>
-      <p>For school office and teaching staff. Register pupils, enter term results and set fee amounts.</p>
-    </div>
-  </section>
-
-  <section>
-    <div class="wrap">
-
-      <!-- LOGIN -->
-      <div id="adminLogin" class="login-shell">
+      <!-- ======= PORTAL: Results ======= -->
+      <div id="ppane-results" style="display:none">
+        <div class="page-title"><div><h1>Results</h1><p>Term results and report history.</p></div></div>
         <div class="panel">
-          <h3>Staff log in</h3>
-          <p class="hint">Enter your staff email and password to continue.</p>
-          <div id="adminLoginAlert"></div>
-          <div class="field">
-            <label for="adminEmail">Email</label>
-            <input id="adminEmail" type="email" placeholder="you@maflunacademy.com" autocomplete="username">
-          </div>
-          <div class="field">
-            <label for="adminPassword">Password</label>
-            <input id="adminPassword" type="password" placeholder="Password" autocomplete="current-password">
-          </div>
-          <button class="btn-gold" style="width:100%" onclick="adminLogin()">Log in</button>
-        </div>
-      </div>
-
-      <!-- DASHBOARD -->
-      <div id="adminDash" style="display:none">
-        <div class="dash-top">
-          <div>
-            <div class="dash-id">Staff Admin</div>
-            <div class="dash-name">School management</div>
-          </div>
-          <button class="btn-outline" style="color:var(--ink);border-color:var(--line)" onclick="adminLogout()">Log out</button>
-        </div>
-
-        <div class="tabbar">
-          <button id="atab-students" class="active" onclick="adminTab('students')">Students</button>
-          <button id="atab-results" onclick="adminTab('results')">Results</button>
-          <button id="atab-fees" onclick="adminTab('fees')">Fees</button>
-          <button id="atab-payments" onclick="adminTab('payments')">Payments log</button>
-        </div>
-
-        <!-- STUDENTS -->
-        <div id="apane-students">
-          <div class="panel">
-            <h3>Register a student</h3>
-            <p class="hint">Creates the Student ID and PIN the parent will use to log in to the portal.</p>
-            <div id="studentAlert"></div>
-            <div class="field-row">
-              <div class="field">
-                <label>Full name</label>
-                <input id="stuName" type="text" placeholder="e.g. Amina Bello">
-              </div>
-              <div class="field">
-                <label>Class</label>
-                <select id="stuClass">
-                  <optgroup label="Nursery">
-                    <option>Nursery 1</option><option>Nursery 2</option>
-                  </optgroup>
-                  <optgroup label="Primary">
-                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
-                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
-                  </optgroup>
-                  <optgroup label="Secondary">
-                    <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
-                    <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
-                  </optgroup>
-                </select>
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label>Parent / guardian phone</label>
-                <input id="stuPhone" type="text" placeholder="e.g. 0803 000 0000">
-              </div>
-              <div class="field">
-                <label>Portal PIN (4–6 digits)</label>
-                <input id="stuPin" type="text" placeholder="e.g. 1234">
-              </div>
-            </div>
-            <button class="btn-gold" onclick="registerStudent()">Register student</button>
-          </div>
-
-          <div class="panel">
-            <h3>All students</h3>
-            <p class="hint">Grouped by class. Search by name or Student ID.</p>
-            <div class="field" style="max-width:360px">
-              <input id="studentSearch" type="text" placeholder="Search students…" oninput="renderStudentsList()">
-            </div>
-            <div id="studentsList"></div>
-          </div>
-        </div>
-
-        <!-- RESULTS -->
-        <div id="apane-results" style="display:none">
-          <div class="panel">
-            <h3>Enter / edit results</h3>
-            <div id="resultAlert"></div>
+          <h3>Term results</h3>
+          <p class="hint">Select a session and term to view your child's report.</p>
+          <div class="field-row">
             <div class="field">
-              <label>Find student</label>
-              <input id="resStudentSearch" type="text" placeholder="Search by name or Student ID…" oninput="populateResultStudentSelect()">
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label>Student</label>
-                <select id="resStudent" onchange="loadResultForm()"></select>
-              </div>
-              <div class="field">
-                <label>Session</label>
-                <input id="resSessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026" onchange="loadResultForm()">
-              </div>
+              <label>Session</label>
+              <select id="resSession" onchange="renderPortalResults()"></select>
             </div>
             <div class="field">
               <label>Term</label>
-              <select id="resTermInput" onchange="loadResultForm()">
+              <select id="resTerm" onchange="renderPortalResults()">
                 <option>First Term</option>
                 <option>Second Term</option>
                 <option>Third Term</option>
               </select>
             </div>
-
-            <div class="field">
-              <label>Subjects</label>
-              <div id="subjectRows" class="subject-rows"></div>
-              <button class="btn-ghost" onclick="addSubjectRow()">+ Add subject</button>
-            </div>
-
-            <div class="field">
-              <label>Teacher's remarks</label>
-              <textarea id="resRemarks" rows="3" placeholder="Overall comment on the pupil's performance"></textarea>
-            </div>
-
-            <button class="btn-gold" onclick="saveResult()">Save result</button>
           </div>
-
-          <div class="panel">
-            <h3>Result history</h3>
-            <p class="hint">Every term saved for the selected student, kept on record — nothing is overwritten between terms.</p>
-            <div id="resultHistory"></div>
-          </div>
+          <div id="resultsBody"></div>
         </div>
-
-        <!-- FEES -->
-        <div id="apane-fees" style="display:none">
-          <div class="panel">
-            <h3>Fee structure</h3>
-            <p class="hint">Set the amount due per term for each class. Parents see this as their balance in the portal.</p>
-            <div id="feesAlert"></div>
-            <div class="field-row">
-              <div class="field">
-                <label>Class</label>
-                <select id="feeClass">
-                  <optgroup label="Nursery">
-                    <option>Nursery 1</option><option>Nursery 2</option>
-                  </optgroup>
-                  <optgroup label="Primary">
-                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
-                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
-                  </optgroup>
-                  <optgroup label="Secondary">
-                    <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
-                    <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
-                  </optgroup>
-                </select>
-              </div>
-              <div class="field">
-                <label>Amount per term (₦)</label>
-                <input id="feeAmount" type="number" min="0" placeholder="e.g. 45000">
-              </div>
-            </div>
-            <button class="btn-gold" onclick="saveFee()">Save fee amount</button>
-          </div>
-          <div class="panel">
-            <h3>Current fee structure</h3>
-            <div id="feesList"></div>
-          </div>
-        </div>
-
-        <!-- PAYMENTS LOG -->
-        <div id="apane-payments" style="display:none">
-          <div class="panel">
-            <h3>Record a payment received</h3>
-            <p class="hint">Log a fee payment after it's received at the office (cash, bank transfer, etc.). This updates the balance the parent sees in the portal.</p>
-            <div id="recordPayAlert"></div>
-            <div class="field-row">
-              <div class="field">
-                <label>Student</label>
-                <select id="payStudent"></select>
-              </div>
-              <div class="field">
-                <label>Session</label>
-                <input id="paySessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026">
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label>Term</label>
-                <select id="payTermInput">
-                  <option>First Term</option>
-                  <option>Second Term</option>
-                  <option>Third Term</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Amount received (₦)</label>
-                <input id="payAmountInput" type="number" min="1" placeholder="e.g. 45000">
-              </div>
-            </div>
-            <button class="btn-gold" onclick="recordPayment()">Record payment</button>
-          </div>
-          <div class="panel">
-            <h3>All payments received</h3>
-            <div id="paymentsLog"></div>
-          </div>
-        </div>
-
       </div>
 
-    </div>
-  </section>
-</div><!-- /page-admin -->
+      <!-- ======= PORTAL: Fees ======= -->
+      <div id="ppane-fees" style="display:none">
+        <div class="page-title"><div><h1>Fees</h1><p>Check your balance and pay securely online.</p></div></div>
+        <div class="panel">
+          <h3>Check balance for a term</h3>
+          <div class="field-row">
+            <div class="field">
+              <label>Session</label>
+              <select id="feeSession" onchange="renderPortalFees()"></select>
+            </div>
+            <div class="field">
+              <label>Term</label>
+              <select id="feeTerm" onchange="renderPortalFees()">
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="stat-cards" id="feeStatCards" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="panel">
+          <h3>Pay your fees</h3>
+          <p class="hint">Secure card, bank transfer or USSD payment, powered by Paystack.</p>
+          <div id="payAlert"></div>
+          <div class="field">
+            <label for="payEmail">Email for receipt</label>
+            <input id="payEmail" type="email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="payAmount">Amount (₦)</label>
+            <input id="payAmount" type="number" min="1" placeholder="e.g. 45000" oninput="this.dataset.userEdited='1'">
+          </div>
+          <button class="btn btn-gold" onclick="payWithPaystack()">Pay with Paystack</button>
+        </div>
+        <div class="panel">
+          <h3>Payment history</h3>
+          <p class="hint">Includes payments made here and payments the office has recorded from cash or bank transfer.</p>
+          <div id="paymentHistory"></div>
+        </div>
+      </div>
+
+      <!-- ======= PORTAL: Profile ======= -->
+      <div id="ppane-profile" style="display:none">
+        <div class="page-title"><div><h1>My profile</h1><p>Your school account information.</p></div></div>
+        <div class="panel" id="profileBody"></div>
+      </div>
+
+      <!-- ======= ADMIN: Dashboard ======= -->
+      <div id="apane-dashboard" style="display:none">
+        <div class="page-title"><div><h1>Dashboard</h1><p>School overview.</p></div></div>
+        <div class="stat-cards" id="adminDashCards"></div>
+        <div class="panel">
+          <h3>Recent payments</h3>
+          <div id="adminRecentActivity"></div>
+        </div>
+      </div>
+
+      <!-- ======= ADMIN: Students ======= -->
+      <div id="apane-students" style="display:none">
+        <div class="page-title"><div><h1>Students</h1><p>Register pupils and manage records.</p></div></div>
+        <div class="panel">
+          <h3>Register a student</h3>
+          <p class="hint">Creates the Student ID and PIN the parent will use to log in to the portal.</p>
+          <div id="studentAlert"></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Full name</label>
+              <input id="stuName" type="text" placeholder="e.g. Amina Bello">
+            </div>
+            <div class="field">
+              <label>Class</label>
+              <select id="stuClass">
+                <optgroup label="Nursery">
+                  <option>Nursery 1</option><option>Nursery 2</option>
+                </optgroup>
+                <optgroup label="Primary">
+                  <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                  <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                </optgroup>
+                <optgroup label="Secondary">
+                  <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+                  <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Parent / guardian phone</label>
+              <input id="stuPhone" type="text" placeholder="e.g. 0803 000 0000">
+            </div>
+            <div class="field">
+              <label>Portal PIN (4–6 digits)</label>
+              <input id="stuPin" type="text" placeholder="e.g. 1234">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="registerStudent()">Register student</button>
+        </div>
+
+        <div class="panel">
+          <h3>All students</h3>
+          <p class="hint">Grouped by class. Search by name or Student ID.</p>
+          <div class="field" style="max-width:360px">
+            <input id="studentSearch" type="text" placeholder="Search students…" oninput="renderStudentsList()">
+          </div>
+          <div id="studentsList"></div>
+        </div>
+      </div>
+
+      <!-- ======= ADMIN: Results ======= -->
+      <div id="apane-results" style="display:none">
+        <div class="page-title"><div><h1>Results</h1><p>Enter and publish student scores for each term.</p></div></div>
+        <div class="panel">
+          <h3>Enter / edit results</h3>
+          <div id="resultAlert"></div>
+          <div class="field">
+            <label>Find student</label>
+            <input id="resStudentSearch" type="text" placeholder="Search by name or Student ID…" oninput="populateResultStudentSelect()">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Student</label>
+              <select id="resStudent" onchange="loadResultForm()"></select>
+            </div>
+            <div class="field">
+              <label>Session</label>
+              <input id="resSessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026" onchange="loadResultForm()">
+            </div>
+          </div>
+          <div class="field">
+            <label>Term</label>
+            <select id="resTermInput" onchange="loadResultForm()">
+              <option>First Term</option>
+              <option>Second Term</option>
+              <option>Third Term</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Subjects</label>
+            <div id="subjectRows" class="subject-rows"></div>
+            <button class="btn-ghost" onclick="addSubjectRow()">+ Add subject</button>
+          </div>
+
+          <div class="field">
+            <label>Teacher's remarks</label>
+            <textarea id="resRemarks" rows="3" placeholder="Overall comment on the pupil's performance"></textarea>
+          </div>
+
+          <button class="btn btn-gold" onclick="saveResult()">Save result</button>
+        </div>
+
+        <div class="panel">
+          <h3>Result history</h3>
+          <p class="hint">Every term saved for the selected student, kept on record — nothing is overwritten between terms.</p>
+          <div id="resultHistory"></div>
+        </div>
+      </div>
+
+      <!-- ======= ADMIN: Fees (structure + record payment + log) ======= -->
+      <div id="apane-fees" style="display:none">
+        <div class="page-title"><div><h1>Fees</h1><p>Set fee amounts and track payments received.</p></div></div>
+        <div class="panel">
+          <h3>Fee structure</h3>
+          <p class="hint">Set the amount due per term for each class. Parents see this as their balance in the portal.</p>
+          <div id="feesAlert"></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Class</label>
+              <select id="feeClass">
+                <optgroup label="Nursery">
+                  <option>Nursery 1</option><option>Nursery 2</option>
+                </optgroup>
+                <optgroup label="Primary">
+                  <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                  <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                </optgroup>
+                <optgroup label="Secondary">
+                  <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+                  <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="field">
+              <label>Amount per term (₦)</label>
+              <input id="feeAmount" type="number" min="0" placeholder="e.g. 45000">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="saveFee()">Save fee amount</button>
+        </div>
+        <div class="panel">
+          <h3>Current fee structure</h3>
+          <div id="feesList"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Record a payment received</h3>
+          <p class="hint">Log a fee payment after it's received at the office (cash, bank transfer, etc.). This updates the balance the parent sees in the portal.</p>
+          <div id="recordPayAlert"></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Student</label>
+              <select id="payStudent"></select>
+            </div>
+            <div class="field">
+              <label>Session</label>
+              <input id="paySessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Term</label>
+              <select id="payTermInput">
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Amount received (₦)</label>
+              <input id="payAmountInput" type="number" min="1" placeholder="e.g. 45000">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="recordPayment()">Record payment</button>
+        </div>
+        <div class="panel">
+          <h3>All payments received</h3>
+          <div id="paymentsLog"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div><!-- /app -->
 
 <div id="idleBanner" class="idle-banner">
   <p id="idleBannerText">You'll be logged out soon due to inactivity.</p>
   <button onclick="stayLoggedIn()">Stay logged in</button>
 </div>
 
-<footer>
-  <div class="wrap">
-    <div class="footer-top">
-      <div class="footer-brand-row">
-        <img src="logo.png" alt="Maflun Academy crest">
-        <div class="footer-brand">Maflun Academy</div>
-      </div>
-      <div class="footer-cols">
-        <div class="footer-col">
-          <a href="#about" onclick="return goHomeAnchor(event,'about')">About</a>
-          <a href="#academics" onclick="return goHomeAnchor(event,'academics')">Academics</a>
-          <a href="#admissions" onclick="return goHomeAnchor(event,'admissions')">Admissions</a>
-          <button class="linklike" onclick="showPage('portal')">Student &amp; Parent Portal</button>
-          <button class="linklike" onclick="showPage('admin')">Staff Admin</button>
-        </div>
-        <div class="footer-col">
-          <a href="tel:08036126746">0803 612 6746</a>
-          <a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a>
-          <a href="#contact" onclick="return goHomeAnchor(event,'contact')">Malkali Farm, Mando, Kaduna</a>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© <span id="year"></span> Maflun Academy. All rights reserved.</span>
-      <span>RC 1710300, Kaduna, Nigeria</span>
-    </div>
-  </div>
-</footer>
+<div id="toast" class="toast hidden"></div>
 
 <script>
+
 document.getElementById('year').textContent = new Date().getFullYear();
 const menuBtn = document.getElementById('menuBtn');
 const mobileMenu = document.getElementById('mobileMenu');
@@ -1137,7 +886,7 @@ menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
 mobileMenu.querySelectorAll('a,button').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
 
 /* Header gains a soft shadow once the page is scrolled */
-const headerEl = document.querySelector('header');
+const headerEl = document.querySelector('.site-header');
 window.addEventListener('scroll', () => {
   headerEl.classList.toggle('scrolled', window.scrollY > 10);
 }, { passive:true });
@@ -1177,6 +926,20 @@ if('IntersectionObserver' in window){
 const SUPABASE_URL = "https://sazlwzwbewxdnuutixbd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhemx3endiZXd4ZG51dXRpeGJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5ODU5ODgsImV4cCI6MjEwNDU2MTk4OH0.CranV-gRK8u8nhttit-hn26XgHAh2OYOARAd6Bwf_7w";
 
+/* ================= Paystack config =================
+   1. Create a Paystack account at https://paystack.com and get your
+      keys from Settings -> API Keys & Webhooks. Start with the TEST
+      public key (starts with pk_test_) until you're ready to accept
+      real money, then switch to the LIVE key (pk_live_).
+   2. Paste the public key below — it's safe to expose, same as the
+      Supabase anon key above.
+   3. The SECRET key (sk_test_.../sk_live_...) must never go in this
+      file. It's set as a Supabase Edge Function secret instead — see
+      paystack-verify-payment.ts and its deployment notes.
+================================================================= */
+const PAYSTACK_PUBLIC_KEY = "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
+const VERIFY_PAYMENT_URL = SUPABASE_URL + "/functions/v1/verify-payment";
+
 // Main client: holds whichever session is active (staff or parent).
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { storageKey: 'sb-maflun-main', persistSession: false, autoRefreshToken: true }
@@ -1196,22 +959,56 @@ function studentEmail(id){
 }
 
 /* ============== Page routing ============== */
-function showPage(name){
-  ['home','portal','admin'].forEach(p=>{
-    document.getElementById('page-'+p).style.display = (p===name) ? '' : 'none';
-  });
-  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
-  if(name==='portal') refreshPortalSelectors();
-  if(name==='admin' && adminState.loggedIn) adminTab(adminState.tab||'students');
-}
-function goHomeAnchor(e, id){
+function scrollToId(e, id){
   e.preventDefault();
-  showPage('home');
-  setTimeout(()=>{
-    const el = document.getElementById(id);
-    if(el) el.scrollIntoView({behavior:'smooth'});
-  }, 30);
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth'});
   return false;
+}
+
+/* ============== Login modal ============== */
+function openLoginModal(role){
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  setLoginRole(role || 'student');
+}
+function closeLoginModal(){
+  document.getElementById('loginOverlay').classList.add('hidden');
+}
+function setLoginRole(role){
+  const isStudent = role === 'student';
+  document.getElementById('loginRoleStudent').classList.toggle('active', isStudent);
+  document.getElementById('loginRoleStaff').classList.toggle('active', !isStudent);
+  document.getElementById('studentLoginForm').classList.toggle('hidden', !isStudent);
+  document.getElementById('staffLoginForm').classList.toggle('hidden', isStudent);
+}
+
+/* ============== App shell (shown after successful login) ============== */
+function enterApp(role, name, sub){
+  closeLoginModal();
+  document.getElementById('site').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('appUserName').textContent = name;
+  document.getElementById('appUserRole').textContent = sub;
+  document.getElementById('appAvatar').textContent = (name||'M').trim().charAt(0).toUpperCase();
+  document.getElementById('portalSidebar').style.display = role === 'portal' ? '' : 'none';
+  document.getElementById('adminSidebar').style.display = role === 'admin' ? '' : 'none';
+  document.getElementById('appLogoutBtn').onclick = role === 'portal' ? () => portalLogout() : () => adminLogout();
+  window.scrollTo(0,0);
+}
+function exitApp(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('site').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+/* ============== Toast ============== */
+let toastTimer = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add('hidden'), 3500);
 }
 
 /* ============== Small helpers ============== */
@@ -1280,33 +1077,31 @@ async function portalLogin(){
     return;
   }
   portalState = { loggedIn:true, student:srow };
-  document.getElementById('portalLogin').style.display = 'none';
-  document.getElementById('portalDash').style.display = '';
-  document.getElementById('pdId').textContent = srow.student_id;
-  document.getElementById('pdName').textContent = srow.name;
-  document.getElementById('pdClass').textContent = srow.class_name;
   document.getElementById('portalId').value='';
   document.getElementById('portalPin').value='';
+  enterApp('portal', srow.name, srow.student_id + ' · ' + srow.class_name);
   await refreshPortalSelectors();
-  portalTab('results');
+  portalTab('dashboard');
   resetIdleTimer();
 }
 async function portalLogout(showReason){
   await supabaseClient.auth.signOut();
   portalState = { loggedIn:false, student:null };
-  document.getElementById('portalLogin').style.display = '';
-  document.getElementById('portalDash').style.display = 'none';
+  exitApp();
   document.getElementById('portalLoginAlert').innerHTML = showReason
     ? '<div class="alert alert-error">You were logged out due to inactivity, to keep this device safe.</div>' : '';
+  if(showReason) toast('Signed out due to inactivity');
   clearIdleTimers();
 }
 function portalTab(tab){
-  document.getElementById('ptab-results').classList.toggle('active', tab==='results');
-  document.getElementById('ptab-fees').classList.toggle('active', tab==='fees');
-  document.getElementById('ppane-results').style.display = tab==='results' ? '' : 'none';
-  document.getElementById('ppane-fees').style.display = tab==='fees' ? '' : 'none';
+  ['dashboard','results','fees','profile'].forEach(t=>{
+    document.getElementById('ptab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('ppane-'+t).style.display = (t===tab) ? '' : 'none';
+  });
+  if(tab==='dashboard') renderPortalDashboard();
   if(tab==='results') renderPortalResults();
   if(tab==='fees') renderPortalFees();
+  if(tab==='profile') renderPortalProfile();
 }
 function sessionOptions(){
   const now = new Date().getFullYear();
@@ -1371,6 +1166,10 @@ async function renderPortalFees(){
     '<div class="stat-card"><div class="label">Fee per term (' + esc(st.class_name) + ')</div><div class="value">'+money(due)+'</div></div>' +
     '<div class="stat-card"><div class="label">Balance this term</div><div class="value">'+money(balance)+'</div></div>' +
     '<div class="stat-card"><div class="label">Total paid (all time)</div><div class="value">'+money(paidAllTime)+'</div></div>';
+  const payAmountEl = document.getElementById('payAmount');
+  if(payAmountEl && !payAmountEl.dataset.userEdited){
+    payAmountEl.value = balance > 0 ? balance : '';
+  }
 
   const hist = document.getElementById('paymentHistory');
   if(!payments.length){
@@ -1380,6 +1179,156 @@ async function renderPortalFees(){
       '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.session)+'</td><td>'+esc(p.term)+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.id)+'</td></tr>'
     ).join('');
     hist.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Session</th><th>Term</th><th>Amount</th><th>Reference</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+}
+
+/* --- Portal: Dashboard & Profile --- */
+async function renderPortalDashboard(){
+  const st = portalState.student;
+  document.getElementById('portalDashGreeting').textContent = 'Welcome back, ' + (st.name.split(' ')[0] || st.name);
+  const session = (document.getElementById('feeSession').value) || sessionOptions()[0];
+  const term = document.getElementById('feeTerm').value || 'First Term';
+
+  const { data: feeRow } = await supabaseClient.from('fees').select('amount').eq('class_name', st.class_name).maybeSingle();
+  const due = feeRow ? Number(feeRow.amount) : 0;
+  const { data: myPayments } = await supabaseClient.from('payments').select('*').eq('student_id', st.student_id);
+  const payments = myPayments || [];
+  const paidThisTerm = payments.filter(p=>p.session===session && p.term===term).reduce((s,p)=>s+Number(p.amount||0),0);
+  const balance = Math.max(due - paidThisTerm, 0);
+  const totalPaid = payments.reduce((s,p)=>s+Number(p.amount||0),0);
+
+  const { data: latestResult } = await supabaseClient
+    .from('results').select('*').eq('student_id', st.student_id)
+    .order('updated_at', {ascending:false}).limit(1).maybeSingle();
+  let avgText = '—';
+  if(latestResult && latestResult.subjects && latestResult.subjects.length){
+    const avg = latestResult.subjects.reduce((s,x)=>s+Number(x.score||0),0) / latestResult.subjects.length;
+    avgText = avg.toFixed(1) + '%';
+  }
+
+  document.getElementById('portalDashCards').innerHTML =
+    '<div class="stat-card"><div class="label">Class</div><div class="value" style="font-size:19px">'+esc(st.class_name)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Balance ('+esc(term)+')</div><div class="value">'+money(balance)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Total paid (all time)</div><div class="value">'+money(totalPaid)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Latest result average</div><div class="value">'+avgText+'</div></div>';
+}
+function renderPortalProfile(){
+  const st = portalState.student;
+  document.getElementById('profileBody').innerHTML =
+    '<div class="profile"><div class="profile-avatar">'+esc((st.name||'?').charAt(0))+'</div>' +
+    '<div><h3 style="margin:0">'+esc(st.name)+'</h3><span style="color:var(--ink-soft);font-size:12px">'+esc(st.student_id)+'</span></div></div>' +
+    '<div class="kv">' +
+    '<div><small>Class</small><b>'+esc(st.class_name)+'</b></div>' +
+    '<div><small>Parent / guardian phone</small><b>'+esc(st.phone||'—')+'</b></div>' +
+    '</div>';
+}
+
+/* --- Admin: Dashboard --- */
+async function renderAdminDashboard(){
+  const [studentsRes, resultsRes, paymentsRes] = await Promise.all([
+    supabaseClient.from('students').select('*', {count:'exact', head:true}),
+    supabaseClient.from('results').select('*', {count:'exact', head:true}),
+    supabaseClient.from('payments').select('amount')
+  ]);
+  const totalCollected = (paymentsRes.data || []).reduce((s,p)=>s+Number(p.amount||0),0);
+  document.getElementById('adminDashCards').innerHTML =
+    '<div class="stat-card"><div class="label">Total students</div><div class="value">'+(studentsRes.count||0)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Results on file</div><div class="value">'+(resultsRes.count||0)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Fees collected</div><div class="value">'+money(totalCollected)+'</div></div>' +
+    '<div class="stat-card"><div class="label">Payments recorded</div><div class="value">'+(paymentsRes.data||[]).length+'</div></div>';
+
+  const { data: recent } = await supabaseClient
+    .from('payments').select('*').order('paid_on', {ascending:false}).limit(5);
+  const box = document.getElementById('adminRecentActivity');
+  if(!recent || !recent.length){
+    box.innerHTML = '<div class="empty-state">No payments recorded yet.</div>';
+  }else{
+    const rows = recent.map(p=>
+      '<tr><td>'+esc(p.paid_on)+'</td><td>'+esc(p.student_id)+'</td><td>'+money(p.amount)+'</td></tr>'
+    ).join('');
+    box.innerHTML = '<div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Student</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+}
+
+/* --- Paying with Paystack --- */
+function paystackRef(){
+  return 'MAF' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,7).toUpperCase();
+}
+function payWithPaystack(){
+  const alertBox = document.getElementById('payAlert');
+  alertBox.innerHTML = '';
+  const email = document.getElementById('payEmail').value.trim();
+  const amount = Number(document.getElementById('payAmount').value);
+  const session = document.getElementById('feeSession').value;
+  const term = document.getElementById('feeTerm').value;
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid email address for your receipt.</div>';
+    return;
+  }
+  if(!amount || amount<=0){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter a valid amount.</div>';
+    return;
+  }
+  if(!window.PaystackPop){
+    alertBox.innerHTML = '<div class="alert alert-error">Payment could not start. Please refresh the page and try again.</div>';
+    return;
+  }
+  if(PAYSTACK_PUBLIC_KEY.indexOf('PASTE_YOUR') === 0){
+    alertBox.innerHTML = '<div class="alert alert-error">Online payment is not set up yet. Please pay at the school office in the meantime.</div>';
+    return;
+  }
+  const reference = paystackRef();
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email: email,
+    amount: Math.round(amount * 100), // Paystack expects kobo
+    currency: 'NGN',
+    ref: reference,
+    metadata: {
+      student_id: portalState.student.student_id,
+      session: session,
+      term: term,
+      custom_fields: [
+        { display_name: "Student ID", variable_name: "student_id", value: portalState.student.student_id },
+        { display_name: "Student name", variable_name: "student_name", value: portalState.student.name }
+      ]
+    },
+    callback: function(response){
+      alertBox.innerHTML = '<div class="alert alert-good">Payment received — confirming…</div>';
+      confirmPaystackPayment(response.reference, session, term);
+    },
+    onClose: function(){ /* user closed the popup without paying */ }
+  });
+  handler.openIframe();
+}
+async function confirmPaystackPayment(reference, session, term){
+  const alertBox = document.getElementById('payAlert');
+  try{
+    const { data: sd } = await supabaseClient.auth.getSession();
+    const token = sd && sd.session ? sd.session.access_token : SUPABASE_ANON_KEY;
+    const res = await fetch(VERIFY_PAYMENT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({
+        reference, student_id: portalState.student.student_id, session, term
+      })
+    });
+    const out = await res.json();
+    if(!out.success){
+      alertBox.innerHTML = '<div class="alert alert-error">We received a payment response but could not confirm it automatically ('+esc(out.error||'unknown error')+'). Please contact the school office with reference <strong>'+esc(reference)+'</strong>.</div>';
+      return;
+    }
+    alertBox.innerHTML = '<div class="alert alert-good">Payment confirmed — thank you! Reference: '+esc(reference)+'.</div>';
+    const payAmountEl = document.getElementById('payAmount');
+    payAmountEl.value = '';
+    delete payAmountEl.dataset.userEdited;
+    renderPortalFees();
+  }catch(e){
+    alertBox.innerHTML = '<div class="alert alert-error">Payment may have gone through, but we could not confirm it automatically. Please contact the school office with reference <strong>'+esc(reference)+'</strong>.</div>';
   }
 }
 
@@ -1408,32 +1357,31 @@ async function adminLogin(){
     return;
   }
   adminState.loggedIn = true;
-  document.getElementById('adminLogin').style.display = 'none';
-  document.getElementById('adminDash').style.display = '';
   document.getElementById('adminEmail').value = '';
   document.getElementById('adminPassword').value = '';
-  adminTab('students');
+  enterApp('admin', 'School Administrator', 'Staff');
+  adminTab('dashboard');
   resetIdleTimer();
 }
 async function adminLogout(showReason){
   await supabaseClient.auth.signOut();
   adminState.loggedIn = false;
-  document.getElementById('adminLogin').style.display = '';
-  document.getElementById('adminDash').style.display = 'none';
+  exitApp();
   document.getElementById('adminLoginAlert').innerHTML = showReason
     ? '<div class="alert alert-error">You were logged out due to inactivity, to keep this device safe.</div>' : '';
+  if(showReason) toast('Signed out due to inactivity');
   clearIdleTimers();
 }
 function adminTab(tab){
   adminState.tab = tab;
-  ['students','results','fees','payments'].forEach(t=>{
+  ['dashboard','students','results','fees'].forEach(t=>{
     document.getElementById('atab-'+t).classList.toggle('active', t===tab);
     document.getElementById('apane-'+t).style.display = (t===tab) ? '' : 'none';
   });
+  if(tab==='dashboard') renderAdminDashboard();
   if(tab==='students') renderStudentsList();
   if(tab==='results') populateResultStudentSelect();
-  if(tab==='fees') renderFeesList();
-  if(tab==='payments') { populatePayStudentSelect(); renderPaymentsLog(); }
+  if(tab==='fees') { renderFeesList(); populatePayStudentSelect(); renderPaymentsLog(); }
 }
 
 /* Standard class order ("sets"), used to group and sort students consistently. */
@@ -1818,7 +1766,7 @@ async function forceIdleLogout(){
     if(adminState.loggedIn || portalState.loggedIn) resetIdleTimer();
   }, { passive:true });
 });
-</script>
 
+</script>
 </body>
 </html>
