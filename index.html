@@ -212,6 +212,7 @@
   .overlay{ position:fixed; inset:0; background:rgba(18,15,35,.62); z-index:100; display:grid; place-items:center; padding:20px; }
   .modal{ background:#fff; width:min(440px,100%); border-radius:20px; padding:32px; position:relative;
     box-shadow:0 30px 100px rgba(0,0,0,.25); max-height:90vh; overflow-y:auto; }
+  @media (max-width:480px){ .modal{ padding:22px; border-radius:16px; } }
   .modal .close{ position:absolute; right:16px; top:12px; border:0; background:none; font-size:24px; color:var(--ink-soft); cursor:pointer; }
   .modal h2{ font-size:28px; margin-top:6px; }
   .role-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:20px 0; }
@@ -238,18 +239,42 @@
 
   /* ================= App shell (portal + admin) ================= */
   .app{ min-height:100vh; background:#f4f3f8; }
-  .appbar{ height:72px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center;
-    justify-content:space-between; padding:0 25px; position:sticky; top:0; z-index:40; }
-  .appbrand{ display:flex; align-items:center; gap:10px; font-weight:700; }
-  .appbrand img{ width:38px; height:38px; object-fit:contain; }
-  .userbox{ display:flex; align-items:center; gap:12px; }
+  .appbar{ height:64px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center;
+    justify-content:space-between; padding:0 25px; position:sticky; top:0; z-index:40; gap:10px; }
+  .appbrand{ display:flex; align-items:center; gap:10px; font-weight:700; min-width:0; }
+  .appbrand img{ width:36px; height:36px; object-fit:contain; flex-shrink:0; }
+  .appbrand span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sidebar-toggle{ display:none; background:none; border:none; font-size:22px; cursor:pointer; padding:4px 6px; color:var(--ink); flex-shrink:0; }
+  .userbox{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
   .userbox b{ display:block; font-size:14px; }
   .userbox small{ display:block; color:var(--ink-soft); font-size:11px; }
   .avatar{ width:38px; height:38px; border-radius:50%; background:#ece9f7; display:grid; place-items:center;
-    color:var(--brand-deep); font-weight:700; }
-  .app-layout{ display:grid; grid-template-columns:245px 1fr; min-height:calc(100vh - 72px); }
-  @media (max-width:900px){ .app-layout{ grid-template-columns:1fr; } .sidebar{ display:none; } .main{ padding:18px; } }
+    color:var(--brand-deep); font-weight:700; flex-shrink:0; }
+  .app-layout{ display:grid; grid-template-columns:245px 1fr; min-height:calc(100vh - 64px); position:relative; }
   .sidebar{ background:var(--ink); color:#c9c5d8; padding:20px 14px; }
+
+  @media (max-width:900px){
+    .app-layout{ grid-template-columns:1fr; }
+    .main{ padding:16px; }
+    .sidebar-toggle{ display:block; }
+    .sidebar{
+      position:fixed; top:64px; bottom:0; left:0; width:250px; max-width:80vw;
+      overflow-y:auto; z-index:60; transform:translateX(-100%);
+      transition:transform .25s ease; box-shadow:12px 0 30px rgba(0,0,0,.25);
+    }
+    .sidebar.open{ transform:translateX(0); }
+  }
+  .sidebar-backdrop{
+    display:none; position:fixed; inset:64px 0 0 0; background:rgba(18,15,35,.45); z-index:55;
+  }
+  .sidebar-backdrop.show{ display:block; }
+
+  @media (max-width:480px){
+    .appbar{ padding:0 14px; }
+    .appbrand span{ max-width:38vw; }
+    .userbox > div{ display:none; }
+    .btn-light#appLogoutBtn{ padding:9px 12px; font-size:13px; }
+  }
   .side-label{ font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#89849f; padding:12px; }
   .side-btn{ width:100%; text-align:left; border:0; background:transparent; color:#c9c5d8; padding:12px 14px;
     border-radius:9px; margin:2px 0; font-weight:600; cursor:pointer; font-size:14.5px; transition:background .15s ease, color .15s ease; }
@@ -263,6 +288,9 @@
   .stat-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
   @media (max-width:900px){ .stat-cards{ grid-template-columns:1fr 1fr; } }
   @media (max-width:500px){ .stat-cards{ grid-template-columns:1fr; } }
+  .stat-cards-3{ grid-template-columns:repeat(3,1fr); }
+  @media (max-width:700px){ .stat-cards-3{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:500px){ .stat-cards-3{ grid-template-columns:1fr; } }
   .stat-card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:19px;
     transition:box-shadow .2s ease; }
   .stat-card:hover{ box-shadow:var(--shadow); }
@@ -296,6 +324,7 @@
   .subject-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
   .subject-row{ display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:10px; align-items:center; }
   @media (max-width:640px){ .subject-row{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:420px){ .subject-row{ grid-template-columns:1fr; } .subject-row .grade-chip{ justify-self:start; } }
   .subject-row input{ padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14.5px; }
   .subject-row .grade-chip{ font-size:13px; text-align:center; padding:8px 6px; }
   .subject-row .remove-btn{ background:none; border:none; color:var(--bad); cursor:pointer; font-size:18px; line-height:1; }
@@ -565,6 +594,7 @@
 
 <div id="app" class="app hidden">
   <div class="appbar">
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
     <div class="appbrand"><img src="logo.png" alt="Maflun Academy crest"><span>Maflun Academy Portal</span></div>
     <div class="userbox">
       <div><b id="appUserName">—</b><small id="appUserRole">—</small></div>
@@ -573,6 +603,7 @@
     </div>
   </div>
   <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
     <aside class="sidebar" id="portalSidebar" style="display:none">
       <div class="side-label">Main menu</div>
@@ -654,7 +685,7 @@
             </div>
           </div>
         </div>
-        <div class="stat-cards" id="feeStatCards" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="stat-cards stat-cards-3" id="feeStatCards"></div>
         <div class="panel">
           <h3>Pay your fees</h3>
           <p class="hint">Secure card, bank transfer or USSD payment, powered by Paystack.</p>
@@ -983,7 +1014,9 @@ function setLoginRole(role){
 }
 
 /* ============== App shell (shown after successful login) ============== */
+let activeAppRole = null;
 function enterApp(role, name, sub){
+  activeAppRole = role;
   closeLoginModal();
   document.getElementById('site').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
@@ -996,9 +1029,22 @@ function enterApp(role, name, sub){
   window.scrollTo(0,0);
 }
 function exitApp(){
+  activeAppRole = null;
+  closeSidebar();
   document.getElementById('app').classList.add('hidden');
   document.getElementById('site').classList.remove('hidden');
   window.scrollTo(0,0);
+}
+function toggleSidebar(){
+  const sb = document.getElementById(activeAppRole === 'admin' ? 'adminSidebar' : 'portalSidebar');
+  if(!sb) return;
+  const isOpen = sb.classList.toggle('open');
+  document.getElementById('sidebarBackdrop').classList.toggle('show', isOpen);
+}
+function closeSidebar(){
+  document.getElementById('portalSidebar').classList.remove('open');
+  document.getElementById('adminSidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('show');
 }
 
 /* ============== Toast ============== */
@@ -1094,6 +1140,7 @@ async function portalLogout(showReason){
   clearIdleTimers();
 }
 function portalTab(tab){
+  closeSidebar();
   ['dashboard','results','fees','profile'].forEach(t=>{
     document.getElementById('ptab-'+t).classList.toggle('active', t===tab);
     document.getElementById('ppane-'+t).style.display = (t===tab) ? '' : 'none';
@@ -1373,6 +1420,7 @@ async function adminLogout(showReason){
   clearIdleTimers();
 }
 function adminTab(tab){
+  closeSidebar();
   adminState.tab = tab;
   ['dashboard','students','results','fees'].forEach(t=>{
     document.getElementById('atab-'+t).classList.toggle('active', t===tab);
