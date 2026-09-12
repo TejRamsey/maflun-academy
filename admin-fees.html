@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fees — Maflun Academy</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" class="app">
+  <div class="appbar" id="appbar"></div>
+  <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="appSidebar"></aside>
+    <main class="main">
+        <div class="page-title"><div><h1>Fees</h1><p>Set fee amounts and track payments received.</p></div></div>
+        <div class="panel">
+          <h3>Fee structure</h3>
+          <p class="hint">Set the amount due per term for each class. Parents see this as their balance in the portal.</p>
+          <div id="feesAlert"></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Class</label>
+              <select id="feeClass">
+                <optgroup label="Nursery">
+                  <option>Nursery 1</option><option>Nursery 2</option>
+                </optgroup>
+                <optgroup label="Primary">
+                  <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                  <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                </optgroup>
+                <optgroup label="Secondary">
+                  <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+                  <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="field">
+              <label>Amount per term (₦)</label>
+              <input id="feeAmount" type="number" min="0" placeholder="e.g. 45000">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="saveFee()">Save fee amount</button>
+        </div>
+        <div class="panel">
+          <h3>Current fee structure</h3>
+          <div id="feesList"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Record a payment received</h3>
+          <p class="hint">Log a fee payment after it's received at the office (cash, bank transfer, etc.). This updates the balance the parent sees in the portal.</p>
+          <div id="recordPayAlert"></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Student</label>
+              <select id="payStudent"></select>
+            </div>
+            <div class="field">
+              <label>Session</label>
+              <input id="paySessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Term</label>
+              <select id="payTermInput">
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Amount received (₦)</label>
+              <input id="payAmountInput" type="number" min="1" placeholder="e.g. 45000">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="recordPayment()">Record payment</button>
+        </div>
+        <div class="panel">
+          <h3>All payments received</h3>
+          <div id="paymentsLog"></div>
+        </div>
+      
+    </main>
+  </div>
+</div>
+
+<div id="idleBanner" class="idle-banner">
+  <p id="idleBannerText">You'll be logged out soon due to inactivity.</p>
+  <button onclick="stayLoggedIn()">Stay logged in</button>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="app.js"></script>
+<script>
+(async function(){
+  const record = await requireStaffAuth('fees');
+  if(!record) return; // not signed in — already redirected to login
+  renderFeesList();
+  populatePayStudentSelect();
+  renderPaymentsLog();
+})();
+</script>
+</body>
+</html>
