@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fees — Maflun Academy</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" class="app">
+  <div class="appbar" id="appbar"></div>
+  <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="appSidebar"></aside>
+    <main class="main">
+        <div class="page-title"><div><h1>Fees</h1><p>Check your balance and pay securely online.</p></div></div>
+        <div class="panel">
+          <h3>Check balance for a term</h3>
+          <div class="field-row">
+            <div class="field">
+              <label>Session</label>
+              <select id="feeSession" onchange="renderPortalFees()"></select>
+            </div>
+            <div class="field">
+              <label>Term</label>
+              <select id="feeTerm" onchange="renderPortalFees()">
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="stat-cards stat-cards-3" id="feeStatCards"></div>
+        <div class="panel">
+          <h3>Pay your fees</h3>
+          <p class="hint">Secure card, bank transfer or USSD payment, powered by Paystack.</p>
+          <div id="payAlert"></div>
+          <div class="field">
+            <label for="payEmail">Email for receipt</label>
+            <input id="payEmail" type="email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="payAmount">Amount (₦)</label>
+            <input id="payAmount" type="number" min="1" placeholder="e.g. 45000" oninput="this.dataset.userEdited='1'">
+          </div>
+          <button class="btn btn-gold" onclick="payWithPaystack()">Pay with Paystack</button>
+        </div>
+        <div class="panel">
+          <h3>Payment history</h3>
+          <p class="hint">Includes payments made here and payments the office has recorded from cash or bank transfer.</p>
+          <div id="paymentHistory"></div>
+        </div>
+      
+    </main>
+  </div>
+</div>
+
+<div id="idleBanner" class="idle-banner">
+  <p id="idleBannerText">You'll be logged out soon due to inactivity.</p>
+  <button onclick="stayLoggedIn()">Stay logged in</button>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="app.js"></script>
+<script>
+(async function(){
+  const record = await requireStudentAuth('fees');
+  if(!record) return; // not signed in — already redirected to login
+  await refreshPortalSelectors();
+  renderPortalFees();
+})();
+</script>
+</body>
+</html>

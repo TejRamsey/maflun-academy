@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Maflun Academy</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" class="app">
+  <div class="appbar" id="appbar"></div>
+  <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="appSidebar"></aside>
+    <main class="main">
+        <div class="page-title"><div><h1>Dashboard</h1><p>School overview.</p></div></div>
+        <div class="stat-cards" id="adminDashCards"></div>
+        <div class="panel">
+          <h3>Recent payments</h3>
+          <div id="adminRecentActivity"></div>
+        </div>
+      
+    </main>
+  </div>
+</div>
+
+<div id="idleBanner" class="idle-banner">
+  <p id="idleBannerText">You'll be logged out soon due to inactivity.</p>
+  <button onclick="stayLoggedIn()">Stay logged in</button>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="app.js"></script>
+<script>
+(async function(){
+  const record = await requireStaffAuth('dashboard');
+  if(!record) return; // not signed in — already redirected to login
+  renderAdminDashboard();
+})();
+</script>
+</body>
+</html>
