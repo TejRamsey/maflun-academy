@@ -554,7 +554,7 @@ async function confirmPaystackPayment(reference, session, term){
 }
 
 /* Standard class order ("sets"), used to group and sort students consistently. */
-const CLASS_ORDER = ['Nursery 1','Nursery 2','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS 1','JSS 2','JSS 3','SSS 1','SSS 2','SSS 3'];
+const CLASS_ORDER = ['Silver 1','Gold 2','Green 1','Yellow 2','Pink 3','Blue 4','Red 5','Purple 6','Basic 7','Basic 8','Basic 9','Basic 10','Basic 11','Basic 12'];
 function classRank(cls){
   const i = CLASS_ORDER.indexOf(cls);
   return i === -1 ? CLASS_ORDER.length : i;
