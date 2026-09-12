@@ -75,7 +75,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       file. It's set as a Supabase Edge Function secret instead — see
       paystack-verify-payment.ts and its deployment notes.
 ================================================================= */
-const PAYSTACK_PUBLIC_KEY = "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
+const PAYSTACK_PUBLIC_KEY = "pk_test_586b518658c0ac29d8f1a67365e0529c1e87c6d8";
 const VERIFY_PAYMENT_URL = SUPABASE_URL + "/functions/v1/verify-payment";
 
 // Main client. Session is kept in sessionStorage (not localStorage): it
