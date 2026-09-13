@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Notice — Maflun Academy</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .legal-wrap{ max-width:760px; margin:0 auto; padding:56px 24px 80px; }
+  .legal-wrap h1{ font-size:32px; }
+  .legal-wrap .eyebrow{ color:var(--brand-deep); }
+  .legal-wrap h2{ font-size:20px; margin-top:36px; margin-bottom:10px; }
+  .legal-wrap p, .legal-wrap li{ color:var(--ink-soft); font-size:15.5px; line-height:1.7; }
+  .legal-wrap ul{ padding-left:20px; }
+  .legal-updated{ font-size:13px; color:var(--ink-soft); margin-top:8px; }
+  .back-home{ font-size:14px; color:var(--ink-soft); text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-bottom:24px; }
+  .back-home:hover{ color:var(--ink); }
+  .contact-card{ background:var(--paper-dim); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-top:14px; }
+</style>
+</head>
+<body>
+
+<div class="legal-wrap">
+  <a class="back-home" href="index.html">← Back to school website</a>
+  <div class="eyebrow">Maflun Academy</div>
+  <h1>Privacy Notice</h1>
+  <p class="legal-updated">This explains, in plain language, what information the Maflun Academy portal collects about pupils and parents, and how it's used and protected. Last updated: <span id="updatedDate"></span>.</p>
+
+  <h2>What we collect</h2>
+  <ul>
+    <li>Your child's name, class, and a parent/guardian phone number, provided by the school office when your child is registered.</li>
+    <li>A Student ID and PIN, used only to log in to this portal — this is separate from any other password you use elsewhere.</li>
+    <li>Academic results entered by teaching staff (subjects, scores, grades, and teacher remarks) for each term.</li>
+    <li>Fee amounts and payment records, including payments made through the portal and payments recorded by the school office.</li>
+    <li>If you choose to pay fees online, the email address you provide for your payment receipt, and payment details processed directly by our payment provider, Paystack — we do not see or store your card details ourselves.</li>
+  </ul>
+
+  <h2>Why we collect it</h2>
+  <p>This information is used only to run the school's academic and fee administration: to let you check your child's results and fee balance, to let the school office track payments, and to let teaching staff record academic progress.</p>
+
+  <h2>Who can see it</h2>
+  <ul>
+    <li>You can see your own child's results, fee balance, and payment history — never another family's.</li>
+    <li>School staff with an authorized account can see and manage records for pupils at the school.</li>
+    <li>Our technology providers — Supabase (secure database and login hosting) and Paystack (payment processing) — handle data on our behalf, under their own security and privacy standards, and never use it for their own purposes.</li>
+  </ul>
+
+  <h2>How it's protected</h2>
+  <p>Every login is a real, individual account — not a shared password. Access to a child's records is restricted at the database level, so it isn't just hidden in the app; it genuinely cannot be retrieved by an account that isn't the linked parent or an authorized staff member. Online payments are verified directly with Paystack before being recorded, so payment records can't be falsified. Sessions end automatically after a period of inactivity to protect shared or public devices.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep academic and fee records for as long as your child is enrolled at the school, and for a reasonable period afterward for academic reference purposes (such as providing transcripts). If you'd like your child's portal login specifically deactivated, contact the school office.</p>
+
+  <h2>Your rights</h2>
+  <p>You can ask the school office at any time to see what information is held about your child, to correct anything inaccurate, or to ask questions about how it's used. If you're not satisfied with how a request is handled, you have the right to contact Nigeria's Data Protection Commission (NDPC).</p>
+
+  <h2>Questions</h2>
+  <p>For any question about this notice or your child's information, contact the school office directly:</p>
+  <div class="contact-card">
+    <div class="contact-value">No. 4 School Road, Malkali Farm, Mando, Kaduna, Nigeria</div>
+    <div class="contact-value" style="margin-top:8px"><a href="tel:08036126746">0803 612 6746</a></div>
+    <div class="contact-value" style="margin-top:8px"><a href="mailto:academymaflun@gmail.com">academymaflun@gmail.com</a></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('updatedDate').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+</script>
+</body>
+</html>
