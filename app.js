@@ -77,7 +77,6 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 ================================================================= */
 const PAYSTACK_PUBLIC_KEY = "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
 const VERIFY_PAYMENT_URL = SUPABASE_URL + "/functions/v1/verify-payment";
-const RESET_PIN_URL = SUPABASE_URL + "/functions/v1/reset-student-pin";
 
 // Main client. Session is kept in sessionStorage (not localStorage): it
 // survives moving between pages of the site in this tab, so a real
@@ -143,11 +142,6 @@ function friendlyError(error){
   if(/Invalid login credentials/i.test(msg)) return 'That ID/email and password don\u2019t match our records.';
   if(/Email not confirmed/i.test(msg)) return 'This account isn\u2019t active yet. Contact the school office.';
   return msg;
-}
-function generatePin(){
-  const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return String(buf[0] % 1000000).padStart(6,'0');
 }
 
 /* ============== App shell (appbar + sidebar), shared by every
@@ -657,7 +651,7 @@ async function registerStudent(){
 
   document.getElementById('stuName').value='';
   document.getElementById('stuPhone').value='';
-  document.getElementById('stuPin').value = generatePin();
+  document.getElementById('stuPin').value='';
   alertBox.innerHTML = '<div class="alert alert-good">Registered '+esc(name)+' as <strong>'+id+'</strong>. Share this ID and the PIN with the parent.</div>';
   renderStudentsList();
 }
@@ -686,7 +680,7 @@ async function renderStudentsList(){
   const html = classes.map(cls=>{
     const rows = byClass[cls].map(s=>
       '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.phone)+'</td>'+
-      '<td><div class="row-actions"><button onclick="resetStudentPin(\''+s.student_id+'\',\''+esc(s.name).replace(/'/g,"\\'")+'\')">Reset PIN</button><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
+      '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
     ).join('');
     return '<h4 style="margin:24px 0 8px;font-size:15px;color:var(--brand-deep)">'+esc(cls)+' <span style="color:var(--ink-soft);font-weight:400">('+byClass[cls].length+')</span></h4>'+
       '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -702,33 +696,6 @@ async function deleteStudent(id){
   }
   renderStudentsList();
   populateResultStudentSelect();
-}
-async function resetStudentPin(id, name){
-  if(!confirm('Generate a new PIN for '+name+'? Their old PIN will stop working immediately.')) return;
-  const alertBox = document.getElementById('studentAlert');
-  alertBox.innerHTML = '<div class="alert alert-good">Resetting PIN…</div>';
-  alertBox.scrollIntoView({behavior:'smooth', block:'center'});
-  try{
-    const { data: sd } = await supabaseClient.auth.getSession();
-    const token = sd && sd.session ? sd.session.access_token : SUPABASE_ANON_KEY;
-    const res = await fetch(RESET_PIN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-        'apikey': SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({ student_id: id })
-    });
-    const out = await res.json();
-    if(!out.success){
-      alertBox.innerHTML = '<div class="alert alert-error">Could not reset the PIN: '+esc(out.error||'unknown error')+'</div>';
-      return;
-    }
-    alertBox.innerHTML = '<div class="alert alert-good">New PIN for '+esc(out.studentName||name)+' (<strong>'+esc(id)+'</strong>): <strong style="font-size:18px;letter-spacing:2px">'+esc(out.newPin)+'</strong> — write this down now and share it with the parent. It will not be shown again.</div>';
-  }catch(e){
-    alertBox.innerHTML = '<div class="alert alert-error">Could not reach the server to reset the PIN. Try again in a moment.</div>';
-  }
 }
 
 /* --- Results --- */
