@@ -75,8 +75,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       file. It's set as a Supabase Edge Function secret instead — see
       paystack-verify-payment.ts and its deployment notes.
 ================================================================= */
-const PAYSTACK_PUBLIC_KEY = "pk_test_586b518658c0ac29d8f1a67365e0529c1e87c6d8";
+const PAYSTACK_PUBLIC_KEY = "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
 const VERIFY_PAYMENT_URL = SUPABASE_URL + "/functions/v1/verify-payment";
+const RESET_PIN_URL = SUPABASE_URL + "/functions/v1/reset-student-pin";
 
 // Main client. Session is kept in sessionStorage (not localStorage): it
 // survives moving between pages of the site in this tab, so a real
@@ -109,6 +110,11 @@ function nextStudentId(existingIds){
   });
   return 'MAF-' + String(max+1).padStart(4,'0');
 }
+function bumpStudentId(id){
+  const m = /MAF-(\d+)/.exec(id);
+  const n = m ? parseInt(m[1],10) + 1 : 1;
+  return 'MAF-' + String(n).padStart(4,'0');
+}
 function gradeFor(score){
   score = Number(score);
   if(isNaN(score)) return '-';
@@ -137,6 +143,11 @@ function friendlyError(error){
   if(/Invalid login credentials/i.test(msg)) return 'That ID/email and password don\u2019t match our records.';
   if(/Email not confirmed/i.test(msg)) return 'This account isn\u2019t active yet. Contact the school office.';
   return msg;
+}
+function generatePin(){
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return String(buf[0] % 1000000).padStart(6,'0');
 }
 
 /* ============== App shell (appbar + sidebar), shared by every
@@ -305,6 +316,32 @@ async function adminLogin(){
     return;
   }
   window.location.href = 'admin-dashboard.html';
+}
+
+/* ============== Staff password reset ==============
+   Requires a custom SMTP provider configured in Supabase (Authentication ->
+   Emails / SMTP Settings) — Supabase's own default mailer only delivers to
+   addresses on your own Supabase team and is capped at a couple of emails
+   an hour, so real staff members will not receive this email until that's
+   set up. See the setup notes wherever this project's README/instructions
+   are kept. */
+function toggleForgotPassword(){
+  document.getElementById('forgotPasswordBox').classList.toggle('hidden');
+}
+async function sendStaffPasswordReset(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const alertBox = document.getElementById('forgotPasswordAlert');
+  if(!email){
+    alertBox.innerHTML = '<div class="alert alert-error">Enter your staff email.</div>';
+    return;
+  }
+  const redirectTo = window.location.origin + '/reset-password.html';
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+  if(error){
+    alertBox.innerHTML = '<div class="alert alert-error">'+esc(friendlyError(error))+'</div>';
+    return;
+  }
+  alertBox.innerHTML = '<div class="alert alert-good">If that email has a staff account, a reset link is on its way. Check your inbox (and spam folder).</div>';
 }
 
 /* ============== Logout ==============
@@ -554,7 +591,7 @@ async function confirmPaystackPayment(reference, session, term){
 }
 
 /* Standard class order ("sets"), used to group and sort students consistently. */
-const CLASS_ORDER = ['Silver 1','Gold 2','Green 1','Yellow 2','Pink 3','Blue 4','Red 5','Purple 6','Basic 7','Basic 8','Basic 9','SSS 1','SSS 2','SSS 3'];
+const CLASS_ORDER = ['Pre Nursery','Nursery 1','Nursery 2','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS 1','JSS 2','JSS 3','SSS 1','SSS 2','SSS 3'];
 function classRank(cls){
   const i = CLASS_ORDER.indexOf(cls);
   return i === -1 ? CLASS_ORDER.length : i;
@@ -582,14 +619,23 @@ async function registerStudent(){
     return;
   }
   const { data: existing } = await supabaseClient.from('students').select('student_id');
-  const id = nextStudentId((existing||[]).map(s=>s.student_id));
-  const email = studentEmail(id);
+  let id = nextStudentId((existing||[]).map(s=>s.student_id));
 
-  // Create the portal login on the auxiliary client so it never
-  // touches the staff member's own session on the main client.
-  const { data: signupData, error: signupError } = await supabaseAux.auth.signUp({
-    email, password: pin
-  });
+  // Create the portal login on the auxiliary client so it never touches
+  // the staff member's own session on the main client. If this exact ID
+  // already has a login from a student removed earlier (removing a
+  // student deletes their record but not their login account), skip
+  // forward to the next ID instead of failing outright.
+  let signupData, signupError;
+  for(let attempt = 0; attempt < 20; attempt++){
+    const email = studentEmail(id);
+    const result = await supabaseAux.auth.signUp({ email, password: pin });
+    signupData = result.data;
+    signupError = result.error;
+    if(!signupError) break;
+    if(!/already registered/i.test(signupError.message||'')) break;
+    id = bumpStudentId(id);
+  }
   await supabaseAux.auth.signOut();
   if(signupError){
     alertBox.innerHTML = '<div class="alert alert-error">Could not create the portal login: '+esc(friendlyError(signupError))+'</div>';
@@ -611,7 +657,7 @@ async function registerStudent(){
 
   document.getElementById('stuName').value='';
   document.getElementById('stuPhone').value='';
-  document.getElementById('stuPin').value='';
+  document.getElementById('stuPin').value = generatePin();
   alertBox.innerHTML = '<div class="alert alert-good">Registered '+esc(name)+' as <strong>'+id+'</strong>. Share this ID and the PIN with the parent.</div>';
   renderStudentsList();
 }
@@ -640,7 +686,7 @@ async function renderStudentsList(){
   const html = classes.map(cls=>{
     const rows = byClass[cls].map(s=>
       '<tr><td>'+esc(s.student_id)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.phone)+'</td>'+
-      '<td><div class="row-actions"><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
+      '<td><div class="row-actions"><button onclick="resetStudentPin(\''+s.student_id+'\',\''+esc(s.name).replace(/'/g,"\\'")+'\')">Reset PIN</button><button onclick="deleteStudent(\''+s.student_id+'\')">Remove</button></div></td></tr>'
     ).join('');
     return '<h4 style="margin:24px 0 8px;font-size:15px;color:var(--brand-deep)">'+esc(cls)+' <span style="color:var(--ink-soft);font-weight:400">('+byClass[cls].length+')</span></h4>'+
       '<div class="table-wrap"><table class="data"><thead><tr><th>ID</th><th>Name</th><th>Parent phone</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -656,6 +702,33 @@ async function deleteStudent(id){
   }
   renderStudentsList();
   populateResultStudentSelect();
+}
+async function resetStudentPin(id, name){
+  if(!confirm('Generate a new PIN for '+name+'? Their old PIN will stop working immediately.')) return;
+  const alertBox = document.getElementById('studentAlert');
+  alertBox.innerHTML = '<div class="alert alert-good">Resetting PIN…</div>';
+  alertBox.scrollIntoView({behavior:'smooth', block:'center'});
+  try{
+    const { data: sd } = await supabaseClient.auth.getSession();
+    const token = sd && sd.session ? sd.session.access_token : SUPABASE_ANON_KEY;
+    const res = await fetch(RESET_PIN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ student_id: id })
+    });
+    const out = await res.json();
+    if(!out.success){
+      alertBox.innerHTML = '<div class="alert alert-error">Could not reset the PIN: '+esc(out.error||'unknown error')+'</div>';
+      return;
+    }
+    alertBox.innerHTML = '<div class="alert alert-good">New PIN for '+esc(out.studentName||name)+' (<strong>'+esc(id)+'</strong>): <strong style="font-size:18px;letter-spacing:2px">'+esc(out.newPin)+'</strong> — write this down now and share it with the parent. It will not be shown again.</div>';
+  }catch(e){
+    alertBox.innerHTML = '<div class="alert alert-error">Could not reach the server to reset the PIN. Try again in a moment.</div>';
+  }
 }
 
 /* --- Results --- */
