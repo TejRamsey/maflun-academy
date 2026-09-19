@@ -33,7 +33,7 @@
             </div>
             <div class="field">
               <label>Session</label>
-              <input id="resSessionInput" type="text" placeholder="e.g. 2025/2026" value="2025/2026" onchange="loadResultForm()">
+              <input id="resSessionInput" type="text" placeholder="e.g. 2026/2027" onchange="loadResultForm()">
             </div>
           </div>
           <div class="field">
@@ -82,6 +82,7 @@
 (async function(){
   const record = await requireStaffAuth('results');
   if(!record) return; // not signed in — already redirected to login
+  document.getElementById('resSessionInput').value = currentSessionLabel();
   populateResultStudentSelect();
 })();
 </script>

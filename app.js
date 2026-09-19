@@ -361,6 +361,10 @@ function sessionOptions(){
   for(let y=now-1; y<=now+1; y++) opts.push(y+'/'+(y+1));
   return opts;
 }
+function currentSessionLabel(){
+  const y = new Date().getFullYear();
+  return y + '/' + (y+1);
+}
 async function refreshPortalSelectors(){
   const opts = sessionOptions();
   ['resSession','feeSession'].forEach(id=>{
@@ -757,7 +761,7 @@ async function loadResultForm(){
     document.getElementById('resultHistory').innerHTML = '';
     return;
   }
-  const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
+  const session = document.getElementById('resSessionInput').value.trim() || currentSessionLabel();
   const term = document.getElementById('resTermInput').value;
   const { data: rec } = await supabaseClient
     .from('results').select('*')
@@ -806,7 +810,7 @@ async function saveResult(){
     alertBox.innerHTML = '<div class="alert alert-error">Register a student first.</div>';
     return;
   }
-  const session = document.getElementById('resSessionInput').value.trim() || '2025/2026';
+  const session = document.getElementById('resSessionInput').value.trim() || currentSessionLabel();
   const term = document.getElementById('resTermInput').value;
   const rows = document.querySelectorAll('#subjectRows .subject-row');
   const subjects = [];
@@ -884,7 +888,7 @@ async function recordPayment(){
   const alertBox = document.getElementById('recordPayAlert');
   alertBox.innerHTML = '';
   const studentId = document.getElementById('payStudent').value;
-  const session = document.getElementById('paySessionInput').value.trim() || '2025/2026';
+  const session = document.getElementById('paySessionInput').value.trim() || currentSessionLabel();
   const term = document.getElementById('payTermInput').value;
   const amount = Number(document.getElementById('payAmountInput').value);
   if(!studentId){
